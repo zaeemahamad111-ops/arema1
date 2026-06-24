@@ -5,6 +5,64 @@ import { supabase } from '@/lib/supabase';
 import { en } from '@/i18n/locales/en';
 import { LANGUAGES, LanguageCode } from '@/i18n/translations';
 
+// Strict visual order of keys page-by-page as they appear in the website
+const ALL_KEYS_ORDER = [
+  // Navigation
+  'nav.home', 'nav.ourStory', 'nav.products', 'nav.whyArema', 'nav.certificates', 'nav.blog', 'nav.contact', 'nav.menu', 'nav.close', 'nav.getInTouch',
+  // Footer
+  'footer.tagline', 'footer.navigate', 'footer.products', 'footer.contact', 'footer.mattaRice', 'footer.whiteRice', 'footer.aromaticRice', 'footer.valueAdded', 'footer.rights', 'footer.privacy', 'footer.terms',
+  
+  // Home Page
+  'hero.scrubText1', 'hero.scrubText2', 'hero.scrubText3', 'hero.scrollCue',
+  'founder.eyebrow', 'founder.heading', 'founder.description', 'founder.conceptDescription',
+  'globalReach.eyebrow', 'globalReach.heading', 'globalReach.body', 'globalReach.cta', 'globalReach.countries', 'globalReach.certified', 'globalReach.direct', 'globalReach.packaging',
+  'whyArema.eyebrow', 'whyArema.heading', 'whyArema.pillars',
+  'products.eyebrow', 'products.heading', 'products.body', 'products.viewDetails', 'products.viewMore',
+  'palakkad.eyebrow', 'palakkad.heading', 'palakkad.advantages',
+  'blog.eyebrow', 'blog.heading', 'blog.viewAll', 'blog.readMore',
+  'cta.heading', 'cta.btnPrimary', 'cta.btnSecondary',
+  
+  // Our Story Page
+  'ourStoryPage.heroLabel', 'ourStoryPage.heroHeadline', 'ourStoryPage.heroHeadlineEm', 'ourStoryPage.heroDesc', 'ourStoryPage.heroScroll',
+  'ourStoryPage.aboutUs', 'ourStoryPage.statementLead', 'ourStoryPage.statementLeadEm', 'ourStoryPage.statementText1', 'ourStoryPage.statementText2',
+  'ourStoryPage.badgeGI', 'ourStoryPage.badgeFSSAI', 'ourStoryPage.badgeAPEDA', 'ourStoryPage.badgeTraceable',
+  'ourStoryPage.founderEyebrow', 'ourStoryPage.founderHeading', 'ourStoryPage.founderHeadingEm', 'ourStoryPage.founderTitle', 'ourStoryPage.founderDegree', 'ourStoryPage.founderPara1', 'ourStoryPage.founderPara2', 'ourStoryPage.founderPara3', 'ourStoryPage.founderQuote',
+  'ourStoryPage.founderBadgeFounded', 'ourStoryPage.founderBadgeCertified', 'ourStoryPage.founderBadgeAPEDA',
+  'ourStoryPage.stripCap1', 'ourStoryPage.stripCap2', 'ourStoryPage.stripCap3',
+  'ourStoryPage.visionMissionTitle', 'ourStoryPage.visionMissionTitleEm', 'ourStoryPage.visionMissionNote',
+  'ourStoryPage.visionTitle', 'ourStoryPage.visionHeading', 'ourStoryPage.visionBody',
+  'ourStoryPage.missionTitle', 'ourStoryPage.missionHeading', 'ourStoryPage.missionBody', 'ourStoryPage.missionHighlight',
+  'ourStoryPage.fieldQuote', 'ourStoryPage.fieldQuoteAttr',
+  'ourStoryPage.beliefsTitle', 'ourStoryPage.beliefsHeading', 'ourStoryPage.beliefsHeadingEm', 'ourStoryPage.beliefs',
+  'ourStoryPage.stat1Label', 'ourStoryPage.stat1Desc', 'ourStoryPage.stat2Label', 'ourStoryPage.stat2Desc', 'ourStoryPage.stat3Label', 'ourStoryPage.stat3Desc', 'ourStoryPage.stat4Label', 'ourStoryPage.stat4Desc',
+  'ourStoryPage.reachLabel', 'ourStoryPage.reachTitle', 'ourStoryPage.reachTitleEm', 'ourStoryPage.reachBody',
+  'ourStoryPage.route1Code', 'ourStoryPage.route1Region', 'ourStoryPage.route1Ports',
+  'ourStoryPage.route2Code', 'ourStoryPage.route2Region', 'ourStoryPage.route2Ports',
+  'ourStoryPage.route3Code', 'ourStoryPage.route3Region', 'ourStoryPage.route3Ports',
+  'ourStoryPage.routeStatus',
+  'ourStoryPage.closingQuote', 'ourStoryPage.closingAttr', 'ourStoryPage.closingCta',
+
+  // Why Choose Arema Page
+  'whyAremaPage.heroLabel', 'whyAremaPage.heroTitle', 'whyAremaPage.heroTitleEm', 'whyAremaPage.heroDesc',
+  'whyAremaPage.valuesLabel', 'whyAremaPage.valuesHeading', 'whyAremaPage.valuesHeadingEm', 'whyAremaPage.pillars',
+  'whyAremaPage.featureTitle', 'whyAremaPage.featureTitleEm', 'whyAremaPage.featureBody', 'whyAremaPage.featureList',
+
+  // Products Page
+  'productsPage.heroLabel', 'productsPage.heroTitle', 'productsPage.heroSubtitle', 'productsPage.viewSpecs',
+  'productDetail.keyChars', 'productDetail.specTitle', 'productDetail.wholesaleTitle', 'productDetail.wholesaleDesc', 'productDetail.btnEnquiry', 'productDetail.exploreOther', 'productDetail.allProducts', 'productDetail.scrollDiscover',
+
+  // Certificates Page
+  'certsPage.eyebrow', 'certsPage.heading', 'certsPage.headingEm', 'certsPage.desc', 'certsPage.viewDoc', 'certsPage.docName',
+
+  // Blog Page
+  'blogPage.eyebrow', 'blogPage.title', 'blogPage.titleEm', 'blogPage.articlesCount', 'blogPage.filter', 'blogPage.featuredLabel', 'blogPage.readArticle', 'blogPage.moreStories', 'blogPage.newsletterEyebrow', 'blogPage.newsletterTitle', 'blogPage.newsletterBody', 'blogPage.newsletterPlaceholder', 'blogPage.newsletterSubmit', 'blogPage.privacyNote', 'blogPage.backToBlog',
+
+  // Contact Page
+  'contactPage.heroLabel', 'contactPage.heroTitle', 'contactPage.heroTitleEm', 'contactPage.heroDesc',
+  'contactPage.address', 'contactPage.contact', 'contactPage.exportInq', 'contactPage.hoursTitle', 'contactPage.hoursDays', 'contactPage.hoursTime',
+  'contactPage.successTitle', 'contactPage.successBody', 'contactPage.formName', 'contactPage.formCompany', 'contactPage.formEmail', 'contactPage.formPhone', 'contactPage.formInquiryType', 'contactPage.formInquiryWholesale', 'contactPage.formInquiryPartner', 'contactPage.formInquiryLabel', 'contactPage.formInquiryRetail', 'contactPage.formInquiryMedia', 'contactPage.formInquiryOther', 'contactPage.formMessage', 'contactPage.formMessagePlaceholder', 'contactPage.formSubmit',
+];
+
 // Helper to flatten nested object
 function flattenObject(obj: any, prefix = ''): Record<string, string> {
   const results: Record<string, string> = {};
@@ -547,21 +605,21 @@ export default function CMSClient() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#0F0A07',
-        color: '#F4EFEA',
+        background: '#FCFAF7',
+        color: '#2E251E',
         fontFamily: 'var(--font-body, system-ui)'
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{
             width: '40px',
             height: '40px',
-            border: '3px solid rgba(219, 187, 160, 0.1)',
-            borderTopColor: '#C5A059',
+            border: '3px solid rgba(162, 123, 60, 0.1)',
+            borderTopColor: '#A27B3C',
             borderRadius: '50%',
             animation: 'spin 1s linear infinite',
             margin: '0 auto 16px auto'
           }} />
-          <p style={{ fontSize: '0.85rem', color: 'rgba(244, 239, 234, 0.6)' }}>Retrieving schema from Supabase...</p>
+          <p style={{ fontSize: '0.85rem', color: '#2E251E' }}>Retrieving schema from Supabase...</p>
           <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />
         </div>
       </div>
@@ -570,11 +628,23 @@ export default function CMSClient() {
 
   const activeConfig = SIDEBAR_ITEMS.find(item => item.id === activeItem);
 
+  // Sorting keys based on visual sequence order
+  const sortKeysInOrder = (keys: string[]) => {
+    return [...keys].sort((a, b) => {
+      const idxA = ALL_KEYS_ORDER.indexOf(a);
+      const idxB = ALL_KEYS_ORDER.indexOf(b);
+      if (idxA === -1 && idxB === -1) return a.localeCompare(b);
+      if (idxA === -1) return 1;
+      if (idxB === -1) return -1;
+      return idxA - idxB;
+    });
+  };
+
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#0F0A07',
-      color: '#F4EFEA',
+      background: '#FCFAF7',
+      color: '#2E251E',
       fontFamily: 'var(--font-body, system-ui)',
       display: 'flex',
       flexDirection: 'column'
@@ -583,9 +653,8 @@ export default function CMSClient() {
       {/* ── TOP HEADER ────────────────────────────────────────────────── */}
       <header style={{
         padding: '16px 32px',
-        background: 'rgba(25, 20, 16, 0.85)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(219, 187, 160, 0.08)',
+        background: '#FFFFFF',
+        borderBottom: '1px solid rgba(162, 123, 60, 0.12)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -599,14 +668,14 @@ export default function CMSClient() {
             fontSize: '1.4rem',
             fontWeight: 700,
             letterSpacing: '-0.02em',
-            color: '#F4EFEA'
+            color: '#2E251E'
           }}>
-            AREMA <span style={{ color: '#D4AF37', fontWeight: 300 }}>CMS</span>
+            AREMA <span style={{ color: '#A27B3C', fontWeight: 300 }}>CMS</span>
           </span>
           <span style={{
             fontSize: '0.65rem',
-            background: 'rgba(212, 175, 55, 0.1)',
-            color: '#D4AF37',
+            background: 'rgba(162, 123, 60, 0.08)',
+            color: '#A27B3C',
             padding: '2px 8px',
             borderRadius: '10px',
             fontWeight: 600,
@@ -622,15 +691,15 @@ export default function CMSClient() {
             style={{
               padding: '8px 16px',
               background: 'transparent',
-              border: '1px solid rgba(220, 53, 69, 0.3)',
+              border: '1px solid rgba(220, 53, 69, 0.35)',
               borderRadius: '6px',
-              color: '#EA868F',
+              color: '#DC3545',
               fontSize: '0.8rem',
               fontWeight: 600,
               cursor: 'pointer',
               transition: 'all 0.2s'
             }}
-            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(220, 53, 69, 0.08)'}
+            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(220, 53, 69, 0.05)'}
             onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
           >
             Sign Out
@@ -644,9 +713,8 @@ export default function CMSClient() {
         {/* ── LEFT SIDEBAR NAVIGATION ──────────────────────────────────── */}
         <aside style={{
           width: '280px',
-          borderRight: '1px solid rgba(219, 187, 160, 0.08)',
-          background: 'rgba(20, 15, 12, 0.6)',
-          backdropFilter: 'blur(12px)',
+          borderRight: '1px solid rgba(162, 123, 60, 0.12)',
+          background: '#F5EFEB',
           padding: '24px 16px',
           display: 'flex',
           flexDirection: 'column',
@@ -655,7 +723,7 @@ export default function CMSClient() {
         }}>
           
           <div>
-            <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(244, 239, 234, 0.35)', marginBottom: '12px', paddingLeft: '8px', fontWeight: 700 }}>Page Sections</div>
+            <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(46, 37, 30, 0.45)', marginBottom: '12px', paddingLeft: '8px', fontWeight: 700 }}>Page Sections</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               {SIDEBAR_ITEMS.filter(item => item.group === 'sections').map(item => (
                 <button
@@ -667,11 +735,11 @@ export default function CMSClient() {
                     width: '100%',
                     textAlign: 'left',
                     padding: '10px 14px',
-                    background: activeItem === item.id ? 'rgba(219, 187, 160, 0.08)' : 'transparent',
+                    background: activeItem === item.id ? 'rgba(162, 123, 60, 0.08)' : 'transparent',
                     border: 'none',
-                    borderLeft: activeItem === item.id ? '3px solid #D4AF37' : '3px solid transparent',
+                    borderLeft: activeItem === item.id ? '3px solid #A27B3C' : '3px solid transparent',
                     borderRadius: '0 8px 8px 0',
-                    color: activeItem === item.id ? '#D4AF37' : 'rgba(244, 239, 234, 0.7)',
+                    color: activeItem === item.id ? '#A27B3C' : 'rgba(46, 37, 30, 0.75)',
                     fontSize: '0.85rem',
                     fontWeight: activeItem === item.id ? 600 : 500,
                     cursor: 'pointer',
@@ -679,7 +747,7 @@ export default function CMSClient() {
                     outline: 'none'
                   }}
                   onMouseOver={(e) => {
-                    if (activeItem !== item.id) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
+                    if (activeItem !== item.id) e.currentTarget.style.background = 'rgba(0, 0, 0, 0.02)';
                   }}
                   onMouseOut={(e) => {
                     if (activeItem !== item.id) e.currentTarget.style.background = 'transparent';
@@ -692,7 +760,7 @@ export default function CMSClient() {
           </div>
 
           <div>
-            <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(244, 239, 234, 0.35)', marginBottom: '12px', paddingLeft: '8px', fontWeight: 700 }}>Catalog Managers</div>
+            <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(46, 37, 30, 0.45)', marginBottom: '12px', paddingLeft: '8px', fontWeight: 700 }}>Catalog Managers</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               {SIDEBAR_ITEMS.filter(item => item.group === 'catalogs').map(item => (
                 <button
@@ -704,11 +772,11 @@ export default function CMSClient() {
                     width: '100%',
                     textAlign: 'left',
                     padding: '10px 14px',
-                    background: activeItem === item.id ? 'rgba(219, 187, 160, 0.08)' : 'transparent',
+                    background: activeItem === item.id ? 'rgba(162, 123, 60, 0.08)' : 'transparent',
                     border: 'none',
-                    borderLeft: activeItem === item.id ? '3px solid #D4AF37' : '3px solid transparent',
+                    borderLeft: activeItem === item.id ? '3px solid #A27B3C' : '3px solid transparent',
                     borderRadius: '0 8px 8px 0',
-                    color: activeItem === item.id ? '#D4AF37' : 'rgba(244, 239, 234, 0.7)',
+                    color: activeItem === item.id ? '#A27B3C' : 'rgba(46, 37, 30, 0.75)',
                     fontSize: '0.85rem',
                     fontWeight: activeItem === item.id ? 600 : 500,
                     cursor: 'pointer',
@@ -716,7 +784,7 @@ export default function CMSClient() {
                     outline: 'none'
                   }}
                   onMouseOver={(e) => {
-                    if (activeItem !== item.id) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
+                    if (activeItem !== item.id) e.currentTarget.style.background = 'rgba(0, 0, 0, 0.02)';
                   }}
                   onMouseOut={(e) => {
                     if (activeItem !== item.id) e.currentTarget.style.background = 'transparent';
@@ -732,26 +800,6 @@ export default function CMSClient() {
 
         {/* ── RIGHT CONTENT PANEL ─────────────────────────────────────── */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-          
-          {/* Status message */}
-          {statusMessage && (
-            <div style={{
-              position: 'fixed',
-              bottom: '24px',
-              right: '24px',
-              background: statusMessage.error ? '#5c191e' : '#1e4620',
-              border: `1px solid ${statusMessage.error ? '#EA868F' : '#75b798'}`,
-              color: statusMessage.error ? '#F8D7DA' : '#D1E7DD',
-              padding: '16px 24px',
-              borderRadius: '8px',
-              fontSize: '0.9rem',
-              zIndex: 1000,
-              boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
-              maxWidth: '400px'
-            }}>
-              {statusMessage.text}
-            </div>
-          )}
 
           {/* PAGE SECTION EDITOR VIEW */}
           {activeConfig && activeConfig.type === 'page' && (
@@ -763,29 +811,29 @@ export default function CMSClient() {
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 marginBottom: '24px',
-                borderBottom: '1px solid rgba(219, 187, 160, 0.08)',
+                borderBottom: '1px solid rgba(162, 123, 60, 0.12)',
                 paddingBottom: '20px'
               }}>
                 <div>
-                  <h2 style={{ fontSize: '1.6rem', margin: '0 0 6px 0', fontFamily: 'var(--font-display, Georgia)', fontWeight: 600 }}>
+                  <h2 style={{ fontSize: '1.6rem', margin: '0 0 6px 0', fontFamily: 'Georgia', fontWeight: 600, color: '#2E251E' }}>
                     {activeConfig.name}
                   </h2>
-                  <p style={{ fontSize: '0.85rem', color: 'rgba(244, 239, 234, 0.45)', margin: 0 }}>
+                  <p style={{ fontSize: '0.85rem', color: 'rgba(46, 37, 30, 0.55)', margin: 0 }}>
                     Manage translations, custom SEO, and media assets overrides.
                   </p>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontSize: '0.85rem', color: 'rgba(244, 239, 234, 0.65)', fontWeight: 600 }}>Active Language:</span>
+                  <span style={{ fontSize: '0.85rem', color: 'rgba(46, 37, 30, 0.75)', fontWeight: 600 }}>Active Language:</span>
                   <select
                     value={selectedLang}
                     onChange={(e) => setSelectedLang(e.target.value as LanguageCode)}
                     style={{
                       padding: '10px 16px',
-                      background: '#1A130E',
-                      border: '1px solid rgba(219, 187, 160, 0.25)',
+                      background: '#FFFFFF',
+                      border: '1px solid rgba(162, 123, 60, 0.25)',
                       borderRadius: '8px',
-                      color: '#F4EFEA',
+                      color: '#2E251E',
                       fontSize: '0.85rem',
                       fontWeight: 600,
                       outline: 'none',
@@ -802,15 +850,15 @@ export default function CMSClient() {
               </div>
 
               {/* Sub Navigation Tabs for the Page (Texts / SEO / Media) */}
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '32px', borderBottom: '1px solid rgba(219, 187, 160, 0.04)', paddingBottom: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '32px', borderBottom: '1px solid rgba(162, 123, 60, 0.1)', paddingBottom: '8px' }}>
                 <button
                   onClick={() => setActiveSubTab('texts')}
                   style={{
                     padding: '8px 20px',
                     background: 'transparent',
                     border: 'none',
-                    borderBottom: activeSubTab === 'texts' ? '2px solid #D4AF37' : '2px solid transparent',
-                    color: activeSubTab === 'texts' ? '#D4AF37' : 'rgba(244, 239, 234, 0.55)',
+                    borderBottom: activeSubTab === 'texts' ? '2px solid #A27B3C' : '2px solid transparent',
+                    color: activeSubTab === 'texts' ? '#A27B3C' : 'rgba(46, 37, 30, 0.6)',
                     fontSize: '0.9rem',
                     fontWeight: 600,
                     cursor: 'pointer',
@@ -828,8 +876,8 @@ export default function CMSClient() {
                       padding: '8px 20px',
                       background: 'transparent',
                       border: 'none',
-                      borderBottom: activeSubTab === 'seo' ? '2px solid #D4AF37' : '2px solid transparent',
-                      color: activeSubTab === 'seo' ? '#D4AF37' : 'rgba(244, 239, 234, 0.55)',
+                      borderBottom: activeSubTab === 'seo' ? '2px solid #A27B3C' : '2px solid transparent',
+                      color: activeSubTab === 'seo' ? '#A27B3C' : 'rgba(46, 37, 30, 0.6)',
                       fontSize: '0.9rem',
                       fontWeight: 600,
                       cursor: 'pointer',
@@ -848,8 +896,8 @@ export default function CMSClient() {
                       padding: '8px 20px',
                       background: 'transparent',
                       border: 'none',
-                      borderBottom: activeSubTab === 'media' ? '2px solid #D4AF37' : '2px solid transparent',
-                      color: activeSubTab === 'media' ? '#D4AF37' : 'rgba(244, 239, 234, 0.55)',
+                      borderBottom: activeSubTab === 'media' ? '2px solid #A27B3C' : '2px solid transparent',
+                      color: activeSubTab === 'media' ? '#A27B3C' : 'rgba(46, 37, 30, 0.6)',
                       fontSize: '0.9rem',
                       fontWeight: 600,
                       cursor: 'pointer',
@@ -865,83 +913,83 @@ export default function CMSClient() {
               {/* TAB 1: Standard Text Fields */}
               {activeSubTab === 'texts' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', flex: 1 }}>
-                  {Object.keys(draftTranslations)
-                    .filter(key => !key.startsWith('seo.')) // Hide SEO keys here
-                    .sort()
-                    .map(key => {
-                      const baselineValue = flattenObject(en)[key] || '';
-                      const isArray = baselineValue.startsWith('[') || baselineValue.startsWith('{');
+                  {sortKeysInOrder(
+                    Object.keys(draftTranslations).filter(key => !key.startsWith('seo.'))
+                  ).map(key => {
+                    const baselineValue = flattenObject(en)[key] || '';
+                    const isArray = baselineValue.startsWith('[') || baselineValue.startsWith('{');
 
-                      return (
-                        <div key={key} style={{
-                          background: 'rgba(255, 255, 255, 0.01)',
-                          border: '1px solid rgba(219, 187, 160, 0.04)',
-                          padding: '24px',
-                          borderRadius: '12px'
-                        }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#D4AF37', fontFamily: 'monospace' }}>{key}</span>
-                            {isArray && (
-                              <span style={{
-                                fontSize: '0.65rem',
-                                background: 'rgba(110, 168, 254, 0.1)',
-                                color: '#6ea8fe',
-                                padding: '2px 8px',
-                                borderRadius: '4px',
-                                fontWeight: 700
-                              }}>JSON Array</span>
-                            )}
-                          </div>
-
-                          <div style={{
-                            fontSize: '0.85rem',
-                            background: 'rgba(0, 0, 0, 0.2)',
-                            padding: '12px 16px',
-                            borderRadius: '8px',
-                            color: 'rgba(244, 239, 234, 0.5)',
-                            marginBottom: '14px',
-                            borderLeft: '3px solid rgba(219, 187, 160, 0.3)',
-                            lineHeight: 1.5
-                          }}>
-                            <strong>English baseline:</strong> {baselineValue}
-                          </div>
-
-                          <textarea
-                            rows={isArray ? 5 : 2}
-                            value={draftTranslations[key] || ''}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setDraftTranslations(prev => ({ ...prev, [key]: val }));
-                            }}
-                            placeholder={isArray ? '[ "Item 1", "Item 2" ]' : `Enter ${LANGUAGES.find(l => l.code === selectedLang)?.name} translation...`}
-                            style={{
-                              width: '100%',
-                              padding: '14px 18px',
-                              background: '#0a0705',
-                              border: '1px solid rgba(219, 187, 160, 0.12)',
-                              borderRadius: '8px',
-                              color: '#F4EFEA',
-                              fontSize: '0.9rem',
-                              lineHeight: 1.5,
-                              outline: 'none',
-                              fontFamily: isArray ? 'monospace' : 'inherit',
-                              resize: 'vertical',
-                              transition: 'all 0.2s'
-                            }}
-                            onFocus={(e) => e.target.style.borderColor = 'rgba(219, 187, 160, 0.4)'}
-                            onBlur={(e) => e.target.style.borderColor = 'rgba(219, 187, 160, 0.12)'}
-                          />
+                    return (
+                      <div key={key} style={{
+                        background: '#FFFFFF',
+                        border: '1px solid rgba(162, 123, 60, 0.08)',
+                        padding: '24px',
+                        borderRadius: '12px',
+                        boxShadow: '0 2px 8px rgba(162, 123, 60, 0.03)'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#A27B3C', fontFamily: 'monospace' }}>{key}</span>
+                          {isArray && (
+                            <span style={{
+                              fontSize: '0.65rem',
+                              background: 'rgba(162, 123, 60, 0.08)',
+                              color: '#A27B3C',
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              fontWeight: 700
+                            }}>JSON Array</span>
+                          )}
                         </div>
-                      );
-                    })}
+
+                        <div style={{
+                          fontSize: '0.85rem',
+                          background: '#F9F6F2',
+                          padding: '12px 16px',
+                          borderRadius: '8px',
+                          color: 'rgba(46, 37, 30, 0.7)',
+                          marginBottom: '14px',
+                          borderLeft: '3px solid #C5A059',
+                          lineHeight: 1.5
+                        }}>
+                          <strong>English baseline:</strong> {baselineValue}
+                        </div>
+
+                        <textarea
+                          rows={isArray ? 5 : 2}
+                          value={draftTranslations[key] || ''}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setDraftTranslations(prev => ({ ...prev, [key]: val }));
+                          }}
+                          placeholder={isArray ? '[ "Item 1", "Item 2" ]' : `Enter ${LANGUAGES.find(l => l.code === selectedLang)?.name} translation...`}
+                          style={{
+                            width: '100%',
+                            padding: '14px 18px',
+                            background: '#FFFFFF',
+                            border: '1px solid rgba(162, 123, 60, 0.2)',
+                            borderRadius: '8px',
+                            color: '#2E251E',
+                            fontSize: '0.9rem',
+                            lineHeight: 1.5,
+                            outline: 'none',
+                            fontFamily: isArray ? 'monospace' : 'inherit',
+                            resize: 'vertical',
+                            transition: 'all 0.2s'
+                          }}
+                          onFocus={(e) => e.target.style.borderColor = '#A27B3C'}
+                          onBlur={(e) => e.target.style.borderColor = 'rgba(162, 123, 60, 0.2)'}
+                        />
+                      </div>
+                    );
+                  })}
 
                   <div style={{
                     position: 'sticky',
                     bottom: 0,
-                    background: '#0F0A07',
+                    background: '#FCFAF7',
                     padding: '24px 0 16px 0',
                     marginTop: '32px',
-                    borderTop: '1px solid rgba(219, 187, 160, 0.08)',
+                    borderTop: '1px solid rgba(162, 123, 60, 0.12)',
                     display: 'flex',
                     justifyContent: 'flex-end'
                   }}>
@@ -953,11 +1001,11 @@ export default function CMSClient() {
                         background: 'linear-gradient(135deg, #C5A059 0%, #A27B3C 100%)',
                         border: 'none',
                         borderRadius: '8px',
-                        color: '#0F0A07',
+                        color: '#FFFFFF',
                         fontWeight: 700,
                         cursor: saving ? 'not-allowed' : 'pointer',
                         fontSize: '0.9rem',
-                        boxShadow: '0 4px 20px rgba(162, 123, 60, 0.25)',
+                        boxShadow: '0 4px 20px rgba(162, 123, 60, 0.15)',
                         transition: 'opacity 0.2s'
                       }}
                     >
@@ -971,19 +1019,20 @@ export default function CMSClient() {
               {activeSubTab === 'seo' && activeConfig.seoKey && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', flex: 1 }}>
                   <div style={{
-                    background: 'rgba(255, 255, 255, 0.01)',
-                    border: '1px solid rgba(219, 187, 160, 0.04)',
+                    background: '#FFFFFF',
+                    border: '1px solid rgba(162, 123, 60, 0.08)',
                     padding: '28px',
                     borderRadius: '12px',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '20px'
+                    gap: '20px',
+                    boxShadow: '0 2px 8px rgba(162, 123, 60, 0.03)'
                   }}>
-                    <h3 style={{ fontSize: '1.1rem', color: '#D4AF37', margin: '0 0 8px 0', fontWeight: 600 }}>SEO Metadata</h3>
+                    <h3 style={{ fontSize: '1.1rem', color: '#A27B3C', margin: '0 0 8px 0', fontWeight: 600 }}>SEO Metadata</h3>
                     
                     {/* SEO Title */}
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.65)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'rgba(46, 37, 30, 0.65)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         Page Title Tag
                       </label>
                       <input
@@ -997,10 +1046,10 @@ export default function CMSClient() {
                         style={{
                           width: '100%',
                           padding: '12px 16px',
-                          background: '#0a0705',
-                          border: '1px solid rgba(219, 187, 160, 0.12)',
+                          background: '#FFFFFF',
+                          border: '1px solid rgba(162, 123, 60, 0.2)',
                           borderRadius: '8px',
-                          color: '#F4EFEA',
+                          color: '#2E251E',
                           fontSize: '0.9rem',
                           outline: 'none'
                         }}
@@ -1009,7 +1058,7 @@ export default function CMSClient() {
 
                     {/* SEO Description */}
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.65)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'rgba(46, 37, 30, 0.65)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         Meta Description
                       </label>
                       <textarea
@@ -1023,10 +1072,10 @@ export default function CMSClient() {
                         style={{
                           width: '100%',
                           padding: '12px 16px',
-                          background: '#0a0705',
-                          border: '1px solid rgba(219, 187, 160, 0.12)',
+                          background: '#FFFFFF',
+                          border: '1px solid rgba(162, 123, 60, 0.2)',
                           borderRadius: '8px',
-                          color: '#F4EFEA',
+                          color: '#2E251E',
                           fontSize: '0.9rem',
                           outline: 'none',
                           resize: 'vertical',
@@ -1037,7 +1086,7 @@ export default function CMSClient() {
 
                     {/* SEO Keywords */}
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.65)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'rgba(46, 37, 30, 0.65)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         Meta Keywords
                       </label>
                       <input
@@ -1051,10 +1100,10 @@ export default function CMSClient() {
                         style={{
                           width: '100%',
                           padding: '12px 16px',
-                          background: '#0a0705',
-                          border: '1px solid rgba(219, 187, 160, 0.12)',
+                          background: '#FFFFFF',
+                          border: '1px solid rgba(162, 123, 60, 0.2)',
                           borderRadius: '8px',
-                          color: '#F4EFEA',
+                          color: '#2E251E',
                           fontSize: '0.9rem',
                           outline: 'none'
                         }}
@@ -1065,10 +1114,10 @@ export default function CMSClient() {
                   <div style={{
                     position: 'sticky',
                     bottom: 0,
-                    background: '#0F0A07',
+                    background: '#FCFAF7',
                     padding: '24px 0 16px 0',
                     marginTop: '32px',
-                    borderTop: '1px solid rgba(219, 187, 160, 0.08)',
+                    borderTop: '1px solid rgba(162, 123, 60, 0.12)',
                     display: 'flex',
                     justifyContent: 'flex-end'
                   }}>
@@ -1080,11 +1129,11 @@ export default function CMSClient() {
                         background: 'linear-gradient(135deg, #C5A059 0%, #A27B3C 100%)',
                         border: 'none',
                         borderRadius: '8px',
-                        color: '#0F0A07',
+                        color: '#FFFFFF',
                         fontWeight: 700,
                         cursor: saving ? 'not-allowed' : 'pointer',
                         fontSize: '0.9rem',
-                        boxShadow: '0 4px 20px rgba(162, 123, 60, 0.25)'
+                        boxShadow: '0 4px 20px rgba(162, 123, 60, 0.15)'
                       }}
                     >
                       {saving ? 'Saving...' : 'Save SEO Tags'}
@@ -1105,32 +1154,33 @@ export default function CMSClient() {
 
                       return (
                         <div key={mKey.key} style={{
-                          background: 'rgba(255, 255, 255, 0.01)',
-                          border: '1px solid rgba(219, 187, 160, 0.06)',
+                          background: '#FFFFFF',
+                          border: '1px solid rgba(162, 123, 60, 0.08)',
                           padding: '24px',
                           borderRadius: '12px',
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: '12px'
+                          gap: '12px',
+                          boxShadow: '0 2px 8px rgba(162, 123, 60, 0.03)'
                         }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#D4AF37' }}>
+                            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#A27B3C' }}>
                               {mKey.label}
                             </span>
-                            <span style={{ fontSize: '0.7rem', color: 'rgba(244, 239, 234, 0.4)', fontFamily: 'monospace' }}>
+                            <span style={{ fontSize: '0.7rem', color: 'rgba(46, 37, 30, 0.4)', fontFamily: 'monospace' }}>
                               key: {mKey.key}
                             </span>
                           </div>
 
                           {/* Preview container */}
                           {currentVal && mKey.type === 'image' && (
-                            <div style={{ height: '140px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(219, 187, 160, 0.1)', borderRadius: '6px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <div style={{ height: '140px', background: '#F9F6F2', border: '1px solid rgba(162, 123, 60, 0.1)', borderRadius: '6px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               <img src={currentVal} alt="Dynamic Override" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
                             </div>
                           )}
 
                           {currentVal && mKey.type === 'video' && (
-                            <div style={{ height: '140px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(219, 187, 160, 0.1)', borderRadius: '6px', overflow: 'hidden' }}>
+                            <div style={{ height: '140px', background: '#F9F6F2', border: '1px solid rgba(162, 123, 60, 0.1)', borderRadius: '6px', overflow: 'hidden' }}>
                               <video src={currentVal} controls muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             </div>
                           )}
@@ -1144,10 +1194,10 @@ export default function CMSClient() {
                               style={{
                                 flex: 1,
                                 padding: '8px 12px',
-                                background: '#0a0705',
-                                border: '1px solid rgba(219, 187, 160, 0.12)',
+                                background: '#FFFFFF',
+                                border: '1px solid rgba(162, 123, 60, 0.2)',
                                 borderRadius: '6px',
-                                color: '#F4EFEA',
+                                color: '#2E251E',
                                 fontSize: '0.8rem',
                                 outline: 'none'
                               }}
@@ -1157,9 +1207,9 @@ export default function CMSClient() {
                                 onClick={() => removeMediaOverride(mKey.key)}
                                 style={{
                                   padding: '8px 12px',
-                                  background: 'rgba(220, 53, 69, 0.08)',
-                                  border: '1px solid rgba(220, 53, 69, 0.3)',
-                                  color: '#EA868F',
+                                  background: 'rgba(220, 53, 69, 0.05)',
+                                  border: '1px solid rgba(220, 53, 69, 0.25)',
+                                  color: '#DC3545',
                                   borderRadius: '6px',
                                   fontSize: '0.8rem',
                                   cursor: 'pointer',
@@ -1176,10 +1226,10 @@ export default function CMSClient() {
                               <button style={{
                                 width: '100%',
                                 padding: '10px',
-                                background: 'rgba(219, 187, 160, 0.08)',
-                                border: '1px solid rgba(219, 187, 160, 0.2)',
+                                background: 'rgba(162, 123, 60, 0.06)',
+                                border: '1px solid rgba(162, 123, 60, 0.15)',
                                 borderRadius: '6px',
-                                color: '#D4AF37',
+                                color: '#A27B3C',
                                 fontSize: '0.8rem',
                                 fontWeight: 600,
                                 cursor: 'pointer'
@@ -1207,14 +1257,15 @@ export default function CMSClient() {
                   </div>
 
                   <div style={{
-                    background: 'rgba(255, 255, 255, 0.01)',
-                    border: '1px solid rgba(219, 187, 160, 0.08)',
+                    background: '#FFFFFF',
+                    border: '1px solid rgba(162, 123, 60, 0.08)',
                     borderRadius: '12px',
                     padding: '24px',
-                    height: 'fit-content'
+                    height: 'fit-content',
+                    boxShadow: '0 2px 8px rgba(162, 123, 60, 0.03)'
                   }}>
-                    <h3 style={{ fontSize: '1rem', color: '#D4AF37', margin: '0 0 8px 0', fontWeight: 600 }}>Media Overriding Policy</h3>
-                    <p style={{ fontSize: '0.85rem', color: 'rgba(244, 239, 234, 0.5)', lineHeight: 1.6, margin: 0 }}>
+                    <h3 style={{ fontSize: '1rem', color: '#A27B3C', margin: '0 0 8px 0', fontWeight: 600 }}>Media Overriding Policy</h3>
+                    <p style={{ fontSize: '0.85rem', color: 'rgba(46, 37, 30, 0.65)', lineHeight: 1.6, margin: 0 }}>
                       Uploading or overriding urls immediately maps resources for this section. Visitors loading the website will load these assets dynamically rather than baseline local files. Revert to defaults anytime by clicking <strong>Clear</strong>.
                     </p>
                   </div>
@@ -1232,8 +1283,8 @@ export default function CMSClient() {
               {/* Product side list panel */}
               <aside style={{
                 width: '240px',
-                borderRight: '1px solid rgba(219, 187, 160, 0.08)',
-                background: 'rgba(20, 15, 12, 0.2)',
+                borderRight: '1px solid rgba(162, 123, 60, 0.12)',
+                background: '#F5EFEB',
                 padding: '24px 16px',
                 display: 'flex',
                 flexDirection: 'column',
@@ -1241,7 +1292,7 @@ export default function CMSClient() {
                 flexShrink: 0
               }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto' }}>
-                  <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(244, 239, 234, 0.35)', marginBottom: '12px', paddingLeft: '8px', fontWeight: 700 }}>Catalog Entries</div>
+                  <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(46, 37, 30, 0.45)', marginBottom: '12px', paddingLeft: '8px', fontWeight: 700 }}>Catalog Entries</div>
                   {products.map(p => {
                     const trans = productTranslations.find(pt => pt.product_id === p.id && pt.lang === 'en');
                     return (
@@ -1255,10 +1306,10 @@ export default function CMSClient() {
                           width: '100%',
                           textAlign: 'left',
                           padding: '10px 12px',
-                          background: (!isAddingProduct && selectedProductId === p.id) ? 'rgba(219, 187, 160, 0.08)' : 'transparent',
+                          background: (!isAddingProduct && selectedProductId === p.id) ? 'rgba(162, 123, 60, 0.08)' : 'transparent',
                           border: 'none',
                           borderRadius: '8px',
-                          color: (!isAddingProduct && selectedProductId === p.id) ? '#D4AF37' : 'rgba(244, 239, 234, 0.75)',
+                          color: (!isAddingProduct && selectedProductId === p.id) ? '#A27B3C' : 'rgba(46, 37, 30, 0.75)',
                           fontSize: '0.85rem',
                           fontWeight: 500,
                           cursor: 'pointer',
@@ -1269,7 +1320,7 @@ export default function CMSClient() {
                         }}
                       >
                         <span style={{ fontWeight: 600 }}>{trans?.name || p.id}</span>
-                        <span style={{ fontSize: '0.7rem', color: 'rgba(244, 239, 234, 0.4)', fontFamily: 'monospace' }}>{p.id}</span>
+                        <span style={{ fontSize: '0.7rem', color: 'rgba(46, 37, 30, 0.45)', fontFamily: 'monospace' }}>{p.id}</span>
                       </button>
                     );
                   })}
@@ -1293,18 +1344,18 @@ export default function CMSClient() {
                   style={{
                     width: '100%',
                     padding: '12px',
-                    background: 'rgba(219, 187, 160, 0.05)',
-                    border: '1px dashed rgba(219, 187, 160, 0.3)',
+                    background: '#FFFFFF',
+                    border: '1px dashed rgba(162, 123, 60, 0.4)',
                     borderRadius: '8px',
-                    color: '#D4AF37',
+                    color: '#A27B3C',
                     fontSize: '0.85rem',
                     fontWeight: 600,
                     cursor: 'pointer',
                     textAlign: 'center',
                     marginTop: '16px'
                   }}
-                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(219, 187, 160, 0.1)'}
-                  onMouseOut={(e) => e.currentTarget.style.background = 'rgba(219, 187, 160, 0.05)'}
+                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(162, 123, 60, 0.03)'}
+                  onMouseOut={(e) => e.currentTarget.style.background = '#FFFFFF'}
                 >
                   + Add Product
                 </button>
@@ -1318,27 +1369,27 @@ export default function CMSClient() {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   marginBottom: '24px',
-                  borderBottom: '1px solid rgba(219, 187, 160, 0.08)',
+                  borderBottom: '1px solid rgba(162, 123, 60, 0.12)',
                   paddingBottom: '20px'
                 }}>
                   <div>
-                    <h2 style={{ fontSize: '1.4rem', margin: '0 0 6px 0', fontFamily: 'Georgia', fontWeight: 600 }}>
+                    <h2 style={{ fontSize: '1.4rem', margin: '0 0 6px 0', fontFamily: 'Georgia', fontWeight: 600, color: '#2E251E' }}>
                       {isAddingProduct ? 'Create New Product' : `Edit Product parameters: ${selectedProductId}`}
                     </h2>
-                    <p style={{ fontSize: '0.85rem', color: 'rgba(244, 239, 234, 0.45)', margin: 0 }}>Configure names, attributes, specifications lists, and translations.</p>
+                    <p style={{ fontSize: '0.85rem', color: 'rgba(46, 37, 30, 0.55)', margin: 0 }}>Configure names, attributes, specifications lists, and translations.</p>
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '0.85rem', color: 'rgba(244, 239, 234, 0.65)', fontWeight: 600 }}>Edit Language:</span>
+                    <span style={{ fontSize: '0.85rem', color: 'rgba(46, 37, 30, 0.75)', fontWeight: 600 }}>Edit Language:</span>
                     <select
                       value={selectedLang}
                       onChange={(e) => setSelectedLang(e.target.value as LanguageCode)}
                       style={{
                         padding: '10px 16px',
-                        background: '#1A130E',
-                        border: '1px solid rgba(219, 187, 160, 0.25)',
+                        background: '#FFFFFF',
+                        border: '1px solid rgba(162, 123, 60, 0.25)',
                         borderRadius: '8px',
-                        color: '#F4EFEA',
+                        color: '#2E251E',
                         fontSize: '0.85rem',
                         fontWeight: 600,
                         outline: 'none',
@@ -1360,7 +1411,7 @@ export default function CMSClient() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(46, 37, 30, 0.65)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         Product Slug ID (e.g. kaima-rice)
                       </label>
                       <input
@@ -1372,10 +1423,10 @@ export default function CMSClient() {
                         style={{
                           width: '100%',
                           padding: '10px 14px',
-                          background: '#0a0705',
-                          border: '1px solid rgba(219, 187, 160, 0.12)',
+                          background: '#FFFFFF',
+                          border: '1px solid rgba(162, 123, 60, 0.2)',
                           borderRadius: '6px',
-                          color: isAddingProduct ? '#F4EFEA' : 'rgba(244, 239, 234, 0.4)',
+                          color: isAddingProduct ? '#2E251E' : 'rgba(46, 37, 30, 0.45)',
                           fontSize: '0.85rem',
                           outline: 'none'
                         }}
@@ -1384,7 +1435,7 @@ export default function CMSClient() {
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                       <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(46, 37, 30, 0.65)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           Product Name
                         </label>
                         <input
@@ -1395,17 +1446,17 @@ export default function CMSClient() {
                           style={{
                             width: '100%',
                             padding: '10px 14px',
-                            background: '#0a0705',
-                            border: '1px solid rgba(219, 187, 160, 0.12)',
+                            background: '#FFFFFF',
+                            border: '1px solid rgba(162, 123, 60, 0.2)',
                             borderRadius: '6px',
-                            color: '#F4EFEA',
+                            color: '#2E251E',
                             fontSize: '0.85rem',
                             outline: 'none'
                           }}
                         />
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(46, 37, 30, 0.65)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           Category Label
                         </label>
                         <input
@@ -1416,10 +1467,10 @@ export default function CMSClient() {
                           style={{
                             width: '100%',
                             padding: '10px 14px',
-                            background: '#0a0705',
-                            border: '1px solid rgba(219, 187, 160, 0.12)',
+                            background: '#FFFFFF',
+                            border: '1px solid rgba(162, 123, 60, 0.2)',
                             borderRadius: '6px',
-                            color: '#F4EFEA',
+                            color: '#2E251E',
                             fontSize: '0.85rem',
                             outline: 'none'
                           }}
@@ -1428,7 +1479,7 @@ export default function CMSClient() {
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(46, 37, 30, 0.65)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         Brief Tagline
                       </label>
                       <input
@@ -1439,10 +1490,10 @@ export default function CMSClient() {
                         style={{
                           width: '100%',
                           padding: '10px 14px',
-                          background: '#0a0705',
-                          border: '1px solid rgba(219, 187, 160, 0.12)',
+                          background: '#FFFFFF',
+                          border: '1px solid rgba(162, 123, 60, 0.2)',
                           borderRadius: '6px',
-                          color: '#F4EFEA',
+                          color: '#2E251E',
                           fontSize: '0.85rem',
                           outline: 'none'
                         }}
@@ -1450,7 +1501,7 @@ export default function CMSClient() {
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(46, 37, 30, 0.65)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         Product Narrative Description
                       </label>
                       <textarea
@@ -1461,10 +1512,10 @@ export default function CMSClient() {
                         style={{
                           width: '100%',
                           padding: '10px 14px',
-                          background: '#0a0705',
-                          border: '1px solid rgba(219, 187, 160, 0.12)',
+                          background: '#FFFFFF',
+                          border: '1px solid rgba(162, 123, 60, 0.2)',
                           borderRadius: '6px',
-                          color: '#F4EFEA',
+                          color: '#2E251E',
                           fontSize: '0.85rem',
                           outline: 'none',
                           lineHeight: 1.5,
@@ -1475,19 +1526,19 @@ export default function CMSClient() {
 
                     {/* Highlights array editor */}
                     <div style={{
-                      background: 'rgba(255, 255, 255, 0.01)',
-                      border: '1px solid rgba(219, 187, 160, 0.05)',
+                      background: '#FFFFFF',
+                      border: '1px solid rgba(162, 123, 60, 0.08)',
                       padding: '20px',
                       borderRadius: '8px'
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#D4AF37', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Highlights list</span>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#A27B3C', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Highlights list</span>
                         <button
                           onClick={() => setProductDraft(prev => ({ ...prev, highlights: [...prev.highlights, ''] }))}
                           style={{
-                            background: 'rgba(219, 187, 160, 0.1)',
-                            border: '1px solid rgba(219, 187, 160, 0.25)',
-                            color: '#D4AF37',
+                            background: 'rgba(162, 123, 60, 0.08)',
+                            border: '1px solid rgba(162, 123, 60, 0.2)',
+                            color: '#A27B3C',
                             padding: '4px 10px',
                             borderRadius: '4px',
                             fontSize: '0.75rem',
@@ -1514,10 +1565,10 @@ export default function CMSClient() {
                               style={{
                                 flex: 1,
                                 padding: '8px 12px',
-                                background: '#0a0705',
-                                border: '1px solid rgba(219, 187, 160, 0.12)',
+                                background: '#FFFFFF',
+                                border: '1px solid rgba(162, 123, 60, 0.2)',
                                 borderRadius: '4px',
-                                color: '#F4EFEA',
+                                color: '#2E251E',
                                 fontSize: '0.8rem',
                                 outline: 'none'
                               }}
@@ -1528,9 +1579,9 @@ export default function CMSClient() {
                                 setProductDraft(prev => ({ ...prev, highlights: list }));
                               }}
                               style={{
-                                background: 'rgba(220, 53, 69, 0.08)',
-                                border: '1px solid rgba(220, 53, 69, 0.2)',
-                                color: '#EA868F',
+                                background: 'rgba(220, 53, 69, 0.05)',
+                                border: '1px solid rgba(220, 53, 69, 0.25)',
+                                color: '#DC3545',
                                 width: '32px',
                                 borderRadius: '4px',
                                 cursor: 'pointer',
@@ -1548,19 +1599,19 @@ export default function CMSClient() {
 
                     {/* Specs array editor */}
                     <div style={{
-                      background: 'rgba(255, 255, 255, 0.01)',
-                      border: '1px solid rgba(219, 187, 160, 0.05)',
+                      background: '#FFFFFF',
+                      border: '1px solid rgba(162, 123, 60, 0.08)',
                       padding: '20px',
                       borderRadius: '8px'
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#D4AF37', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Parameters Specifications</span>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#A27B3C', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Parameters Specifications</span>
                         <button
                           onClick={() => setProductDraft(prev => ({ ...prev, specs: [...prev.specs, { label: '', value: '' }] }))}
                           style={{
-                            background: 'rgba(219, 187, 160, 0.1)',
-                            border: '1px solid rgba(219, 187, 160, 0.25)',
-                            color: '#D4AF37',
+                            background: 'rgba(162, 123, 60, 0.08)',
+                            border: '1px solid rgba(162, 123, 60, 0.2)',
+                            color: '#A27B3C',
                             padding: '4px 10px',
                             borderRadius: '4px',
                             fontSize: '0.75rem',
@@ -1587,10 +1638,10 @@ export default function CMSClient() {
                               style={{
                                 flex: 1,
                                 padding: '8px 12px',
-                                background: '#0a0705',
-                                border: '1px solid rgba(219, 187, 160, 0.12)',
+                                background: '#FFFFFF',
+                                border: '1px solid rgba(162, 123, 60, 0.2)',
                                 borderRadius: '4px',
-                                color: '#F4EFEA',
+                                color: '#2E251E',
                                 fontSize: '0.8rem',
                                 outline: 'none'
                               }}
@@ -1607,10 +1658,10 @@ export default function CMSClient() {
                               style={{
                                 flex: 1,
                                 padding: '8px 12px',
-                                background: '#0a0705',
-                                border: '1px solid rgba(219, 187, 160, 0.12)',
+                                background: '#FFFFFF',
+                                border: '1px solid rgba(162, 123, 60, 0.2)',
                                 borderRadius: '4px',
-                                color: '#F4EFEA',
+                                color: '#2E251E',
                                 fontSize: '0.8rem',
                                 outline: 'none'
                               }}
@@ -1621,9 +1672,9 @@ export default function CMSClient() {
                                 setProductDraft(prev => ({ ...prev, specs: list }));
                               }}
                               style={{
-                                background: 'rgba(220, 53, 69, 0.08)',
-                                border: '1px solid rgba(220, 53, 69, 0.2)',
-                                color: '#EA868F',
+                                background: 'rgba(220, 53, 69, 0.05)',
+                                border: '1px solid rgba(220, 53, 69, 0.25)',
+                                color: '#DC3545',
                                 width: '32px',
                                 borderRadius: '4px',
                                 cursor: 'pointer',
@@ -1645,19 +1696,19 @@ export default function CMSClient() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     
                     <div style={{
-                      background: 'rgba(255, 255, 255, 0.01)',
-                      border: '1px solid rgba(219, 187, 160, 0.08)',
+                      background: '#FFFFFF',
+                      border: '1px solid rgba(162, 123, 60, 0.08)',
                       borderRadius: '10px',
                       padding: '20px'
                     }}>
-                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.65)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(46, 37, 30, 0.65)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         Product Bag Cover Image
                       </label>
                       
                       <div style={{
                         height: '200px',
-                        background: 'radial-gradient(circle at center, #261D15 0%, #0a0705 100%)',
-                        border: '1px solid rgba(219, 187, 160, 0.1)',
+                        background: '#F9F6F2',
+                        border: '1px solid rgba(162, 123, 60, 0.12)',
                         borderRadius: '8px',
                         marginBottom: '12px',
                         display: 'flex',
@@ -1683,10 +1734,10 @@ export default function CMSClient() {
                         style={{
                           width: '100%',
                           padding: '8px 12px',
-                          background: '#0a0705',
-                          border: '1px solid rgba(219, 187, 160, 0.12)',
+                          background: '#FFFFFF',
+                          border: '1px solid rgba(162, 123, 60, 0.2)',
                           borderRadius: '6px',
-                          color: '#F4EFEA',
+                          color: '#2E251E',
                           fontSize: '0.8rem',
                           outline: 'none',
                           marginBottom: '12px'
@@ -1697,10 +1748,10 @@ export default function CMSClient() {
                         <button style={{
                           width: '100%',
                           padding: '10px',
-                          background: 'rgba(219, 187, 160, 0.08)',
-                          border: '1px solid rgba(219, 187, 160, 0.2)',
+                          background: 'rgba(162, 123, 60, 0.08)',
+                          border: '1px solid rgba(162, 123, 60, 0.2)',
                           borderRadius: '6px',
-                          color: '#D4AF37',
+                          color: '#A27B3C',
                           fontSize: '0.8rem',
                           fontWeight: 600,
                           cursor: 'pointer'
@@ -1732,7 +1783,7 @@ export default function CMSClient() {
                           background: 'linear-gradient(135deg, #C5A059 0%, #A27B3C 100%)',
                           border: 'none',
                           borderRadius: '6px',
-                          color: '#0F0A07',
+                          color: '#FFFFFF',
                           fontWeight: 700,
                           cursor: saving ? 'not-allowed' : 'pointer',
                           fontSize: '0.85rem',
@@ -1750,9 +1801,9 @@ export default function CMSClient() {
                             width: '100%',
                             padding: '12px',
                             background: 'transparent',
-                            border: '1px solid rgba(220, 53, 69, 0.3)',
+                            border: '1px solid rgba(220, 53, 69, 0.35)',
                             borderRadius: '6px',
-                            color: '#EA868F',
+                            color: '#DC3545',
                             fontSize: '0.85rem',
                             fontWeight: 600,
                             cursor: saving ? 'not-allowed' : 'pointer'
@@ -1781,8 +1832,8 @@ export default function CMSClient() {
               {/* Blog side list panel */}
               <aside style={{
                 width: '240px',
-                borderRight: '1px solid rgba(219, 187, 160, 0.08)',
-                background: 'rgba(20, 15, 12, 0.2)',
+                borderRight: '1px solid rgba(162, 123, 60, 0.12)',
+                background: '#F5EFEB',
                 padding: '24px 16px',
                 display: 'flex',
                 flexDirection: 'column',
@@ -1790,7 +1841,7 @@ export default function CMSClient() {
                 flexShrink: 0
               }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto' }}>
-                  <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(244, 239, 234, 0.35)', marginBottom: '12px', paddingLeft: '8px', fontWeight: 700 }}>Articles</div>
+                  <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(46, 37, 30, 0.45)', marginBottom: '12px', paddingLeft: '8px', fontWeight: 700 }}>Articles</div>
                   {blogs.map(b => {
                     const trans = blogTranslations.find(bt => bt.blog_id === b.id && bt.lang === 'en');
                     return (
@@ -1804,10 +1855,10 @@ export default function CMSClient() {
                           width: '100%',
                           textAlign: 'left',
                           padding: '10px 12px',
-                          background: (!isAddingBlog && selectedBlogId === b.id) ? 'rgba(219, 187, 160, 0.08)' : 'transparent',
+                          background: (!isAddingBlog && selectedBlogId === b.id) ? 'rgba(162, 123, 60, 0.08)' : 'transparent',
                           border: 'none',
                           borderRadius: '8px',
-                          color: (!isAddingBlog && selectedBlogId === b.id) ? '#D4AF37' : 'rgba(244, 239, 234, 0.75)',
+                          color: (!isAddingBlog && selectedBlogId === b.id) ? '#A27B3C' : 'rgba(46, 37, 30, 0.75)',
                           fontSize: '0.85rem',
                           fontWeight: 500,
                           cursor: 'pointer',
@@ -1818,7 +1869,7 @@ export default function CMSClient() {
                         }}
                       >
                         <span style={{ fontWeight: 600 }}>{trans?.title || b.id}</span>
-                        <span style={{ fontSize: '0.7rem', color: 'rgba(244, 239, 234, 0.4)', fontFamily: 'monospace' }}>{b.id}</span>
+                        <span style={{ fontSize: '0.7rem', color: 'rgba(46, 37, 30, 0.45)', fontFamily: 'monospace' }}>{b.id}</span>
                       </button>
                     );
                   })}
@@ -1842,18 +1893,18 @@ export default function CMSClient() {
                   style={{
                     width: '100%',
                     padding: '12px',
-                    background: 'rgba(219, 187, 160, 0.05)',
-                    border: '1px dashed rgba(219, 187, 160, 0.3)',
+                    background: '#FFFFFF',
+                    border: '1px dashed rgba(162, 123, 60, 0.4)',
                     borderRadius: '8px',
-                    color: '#D4AF37',
+                    color: '#A27B3C',
                     fontSize: '0.85rem',
                     fontWeight: 600,
                     cursor: 'pointer',
                     textAlign: 'center',
                     marginTop: '16px'
                   }}
-                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(219, 187, 160, 0.1)'}
-                  onMouseOut={(e) => e.currentTarget.style.background = 'rgba(219, 187, 160, 0.05)'}
+                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(162, 123, 60, 0.03)'}
+                  onMouseOut={(e) => e.currentTarget.style.background = '#FFFFFF'}
                 >
                   + Add Article
                 </button>
@@ -1867,27 +1918,27 @@ export default function CMSClient() {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   marginBottom: '24px',
-                  borderBottom: '1px solid rgba(219, 187, 160, 0.08)',
+                  borderBottom: '1px solid rgba(162, 123, 60, 0.12)',
                   paddingBottom: '20px'
                 }}>
                   <div>
-                    <h2 style={{ fontSize: '1.4rem', margin: '0 0 6px 0', fontFamily: 'Georgia', fontWeight: 600 }}>
+                    <h2 style={{ fontSize: '1.4rem', margin: '0 0 6px 0', fontFamily: 'Georgia', fontWeight: 600, color: '#2E251E' }}>
                       {isAddingBlog ? 'Create New Article' : `Edit Article parameters: ${selectedBlogId}`}
                     </h2>
-                    <p style={{ fontSize: '0.85rem', color: 'rgba(244, 239, 234, 0.45)', margin: 0 }}>Configure titles, excerpts, body paragraphs lists, and translations.</p>
+                    <p style={{ fontSize: '0.85rem', color: 'rgba(46, 37, 30, 0.55)', margin: 0 }}>Configure titles, excerpts, body paragraphs lists, and translations.</p>
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '0.85rem', color: 'rgba(244, 239, 234, 0.65)', fontWeight: 600 }}>Edit Language:</span>
+                    <span style={{ fontSize: '0.85rem', color: 'rgba(46, 37, 30, 0.75)', fontWeight: 600 }}>Edit Language:</span>
                     <select
                       value={selectedLang}
                       onChange={(e) => setSelectedLang(e.target.value as LanguageCode)}
                       style={{
                         padding: '10px 16px',
-                        background: '#1A130E',
-                        border: '1px solid rgba(219, 187, 160, 0.25)',
+                        background: '#FFFFFF',
+                        border: '1px solid rgba(162, 123, 60, 0.25)',
                         borderRadius: '8px',
-                        color: '#F4EFEA',
+                        color: '#2E251E',
                         fontSize: '0.85rem',
                         fontWeight: 600,
                         outline: 'none',
@@ -1909,7 +1960,7 @@ export default function CMSClient() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(46, 37, 30, 0.65)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         Article Slug ID (e.g. kaima-rice-heritage)
                       </label>
                       <input
@@ -1921,10 +1972,10 @@ export default function CMSClient() {
                         style={{
                           width: '100%',
                           padding: '10px 14px',
-                          background: '#0a0705',
-                          border: '1px solid rgba(219, 187, 160, 0.12)',
+                          background: '#FFFFFF',
+                          border: '1px solid rgba(162, 123, 60, 0.2)',
                           borderRadius: '6px',
-                          color: isAddingBlog ? '#F4EFEA' : 'rgba(244, 239, 234, 0.4)',
+                          color: isAddingBlog ? '#2E251E' : 'rgba(46, 37, 30, 0.45)',
                           fontSize: '0.85rem',
                           outline: 'none'
                         }}
@@ -1932,7 +1983,7 @@ export default function CMSClient() {
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(46, 37, 30, 0.65)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         Article Title
                       </label>
                       <input
@@ -1943,10 +1994,10 @@ export default function CMSClient() {
                         style={{
                           width: '100%',
                           padding: '10px 14px',
-                          background: '#0a0705',
-                          border: '1px solid rgba(219, 187, 160, 0.12)',
+                          background: '#FFFFFF',
+                          border: '1px solid rgba(162, 123, 60, 0.2)',
                           borderRadius: '6px',
-                          color: '#F4EFEA',
+                          color: '#2E251E',
                           fontSize: '0.85rem',
                           outline: 'none'
                         }}
@@ -1955,7 +2006,7 @@ export default function CMSClient() {
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                       <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(46, 37, 30, 0.65)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           Category
                         </label>
                         <input
@@ -1966,17 +2017,17 @@ export default function CMSClient() {
                           style={{
                             width: '100%',
                             padding: '10px 14px',
-                            background: '#0a0705',
-                            border: '1px solid rgba(219, 187, 160, 0.12)',
+                            background: '#FFFFFF',
+                            border: '1px solid rgba(162, 123, 60, 0.2)',
                             borderRadius: '6px',
-                            color: '#F4EFEA',
+                            color: '#2E251E',
                             fontSize: '0.85rem',
                             outline: 'none'
                           }}
                         />
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(46, 37, 30, 0.65)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           Read Time
                         </label>
                         <input
@@ -1987,17 +2038,17 @@ export default function CMSClient() {
                           style={{
                             width: '100%',
                             padding: '10px 14px',
-                            background: '#0a0705',
-                            border: '1px solid rgba(219, 187, 160, 0.12)',
+                            background: '#FFFFFF',
+                            border: '1px solid rgba(162, 123, 60, 0.2)',
                             borderRadius: '6px',
-                            color: '#F4EFEA',
+                            color: '#2E251E',
                             fontSize: '0.85rem',
                             outline: 'none'
                           }}
                         />
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(46, 37, 30, 0.65)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           Publication Date
                         </label>
                         <input
@@ -2008,10 +2059,10 @@ export default function CMSClient() {
                           style={{
                             width: '100%',
                             padding: '10px 14px',
-                            background: '#0a0705',
-                            border: '1px solid rgba(219, 187, 160, 0.12)',
+                            background: '#FFFFFF',
+                            border: '1px solid rgba(162, 123, 60, 0.2)',
                             borderRadius: '6px',
-                            color: '#F4EFEA',
+                            color: '#2E251E',
                             fontSize: '0.85rem',
                             outline: 'none'
                           }}
@@ -2020,7 +2071,7 @@ export default function CMSClient() {
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(46, 37, 30, 0.65)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         Excerpt / Summary
                       </label>
                       <textarea
@@ -2031,10 +2082,10 @@ export default function CMSClient() {
                         style={{
                           width: '100%',
                           padding: '10px 14px',
-                          background: '#0a0705',
-                          border: '1px solid rgba(219, 187, 160, 0.12)',
+                          background: '#FFFFFF',
+                          border: '1px solid rgba(162, 123, 60, 0.2)',
                           borderRadius: '6px',
-                          color: '#F4EFEA',
+                          color: '#2E251E',
                           fontSize: '0.85rem',
                           outline: 'none',
                           lineHeight: 1.5,
@@ -2045,19 +2096,19 @@ export default function CMSClient() {
 
                     {/* Paragraph list array editor */}
                     <div style={{
-                      background: 'rgba(255, 255, 255, 0.01)',
-                      border: '1px solid rgba(219, 187, 160, 0.05)',
+                      background: '#FFFFFF',
+                      border: '1px solid rgba(162, 123, 60, 0.08)',
                       padding: '20px',
                       borderRadius: '8px'
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#D4AF37', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Body Paragraphs</span>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#A27B3C', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Body Paragraphs</span>
                         <button
                           onClick={() => setBlogDraft(prev => ({ ...prev, body: [...prev.body, ''] }))}
                           style={{
-                            background: 'rgba(219, 187, 160, 0.1)',
-                            border: '1px solid rgba(219, 187, 160, 0.25)',
-                            color: '#D4AF37',
+                            background: 'rgba(162, 123, 60, 0.08)',
+                            border: '1px solid rgba(162, 123, 60, 0.25)',
+                            color: '#A27B3C',
                             padding: '4px 10px',
                             borderRadius: '4px',
                             fontSize: '0.75rem',
@@ -2075,14 +2126,14 @@ export default function CMSClient() {
                             <span style={{
                               width: '24px',
                               height: '24px',
-                              background: 'rgba(219, 187, 160, 0.06)',
-                              border: '1px solid rgba(219, 187, 160, 0.1)',
+                              background: 'rgba(162, 123, 60, 0.06)',
+                              border: '1px solid rgba(162, 123, 60, 0.15)',
                               borderRadius: '50%',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               fontSize: '0.75rem',
-                              color: 'rgba(244, 239, 234, 0.5)',
+                              color: 'rgba(46, 37, 30, 0.5)',
                               marginTop: '8px',
                               flexShrink: 0
                             }}>{idx + 1}</span>
@@ -2098,10 +2149,10 @@ export default function CMSClient() {
                               style={{
                                 flex: 1,
                                 padding: '10px 14px',
-                                background: '#0a0705',
-                                border: '1px solid rgba(219, 187, 160, 0.12)',
+                                background: '#FFFFFF',
+                                border: '1px solid rgba(162, 123, 60, 0.2)',
                                 borderRadius: '6px',
-                                color: '#F4EFEA',
+                                color: '#2E251E',
                                 fontSize: '0.85rem',
                                 outline: 'none',
                                 lineHeight: 1.5,
@@ -2114,9 +2165,9 @@ export default function CMSClient() {
                                 setBlogDraft(prev => ({ ...prev, body: list }));
                               }}
                               style={{
-                                background: 'rgba(220, 53, 69, 0.08)',
-                                border: '1px solid rgba(220, 53, 69, 0.2)',
-                                color: '#EA868F',
+                                background: 'rgba(220, 53, 69, 0.05)',
+                                border: '1px solid rgba(220, 53, 69, 0.25)',
+                                color: '#DC3545',
                                 width: '32px',
                                 height: '32px',
                                 borderRadius: '4px',
@@ -2140,19 +2191,19 @@ export default function CMSClient() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     
                     <div style={{
-                      background: 'rgba(255, 255, 255, 0.01)',
-                      border: '1px solid rgba(219, 187, 160, 0.08)',
+                      background: '#FFFFFF',
+                      border: '1px solid rgba(162, 123, 60, 0.08)',
                       borderRadius: '10px',
                       padding: '20px'
                     }}>
-                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.65)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(46, 37, 30, 0.65)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         Cover Visual Image
                       </label>
                       
                       <div style={{
                         height: '160px',
-                        background: 'rgba(0,0,0,0.3)',
-                        border: '1px solid rgba(219, 187, 160, 0.1)',
+                        background: '#F9F6F2',
+                        border: '1px solid rgba(162, 123, 60, 0.12)',
                         borderRadius: '8px',
                         marginBottom: '12px',
                         display: 'flex',
@@ -2178,10 +2229,10 @@ export default function CMSClient() {
                         style={{
                           width: '100%',
                           padding: '8px 12px',
-                          background: '#0a0705',
-                          border: '1px solid rgba(219, 187, 160, 0.12)',
+                          background: '#FFFFFF',
+                          border: '1px solid rgba(162, 123, 60, 0.2)',
                           borderRadius: '6px',
-                          color: '#F4EFEA',
+                          color: '#2E251E',
                           fontSize: '0.8rem',
                           outline: 'none',
                           marginBottom: '12px'
@@ -2192,10 +2243,10 @@ export default function CMSClient() {
                         <button style={{
                           width: '100%',
                           padding: '10px',
-                          background: 'rgba(219, 187, 160, 0.08)',
-                          border: '1px solid rgba(219, 187, 160, 0.2)',
+                          background: 'rgba(162, 123, 60, 0.08)',
+                          border: '1px solid rgba(162, 123, 60, 0.2)',
                           borderRadius: '6px',
-                          color: '#D4AF37',
+                          color: '#A27B3C',
                           fontSize: '0.8rem',
                           fontWeight: 600,
                           cursor: 'pointer'
@@ -2227,7 +2278,7 @@ export default function CMSClient() {
                           background: 'linear-gradient(135deg, #C5A059 0%, #A27B3C 100%)',
                           border: 'none',
                           borderRadius: '6px',
-                          color: '#0F0A07',
+                          color: '#FFFFFF',
                           fontWeight: 700,
                           cursor: saving ? 'not-allowed' : 'pointer',
                           fontSize: '0.85rem',
@@ -2245,9 +2296,9 @@ export default function CMSClient() {
                             width: '100%',
                             padding: '12px',
                             background: 'transparent',
-                            border: '1px solid rgba(220, 53, 69, 0.3)',
+                            border: '1px solid rgba(220, 53, 69, 0.35)',
                             borderRadius: '6px',
-                            color: '#EA868F',
+                            color: '#DC3545',
                             fontSize: '0.85rem',
                             fontWeight: 600,
                             cursor: saving ? 'not-allowed' : 'pointer'
