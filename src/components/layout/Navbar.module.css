@@ -167,11 +167,18 @@
 }
 
 .navLink:hover,
-.activeNavLink {
+.navLink.activeNavLink {
   color: var(--arema-brown);
 }
 
-.activeNavLink::after {
+.navContactBtn.activeNavLink {
+  color: var(--light-surface);
+  background: var(--dark-text);
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.navLink.activeNavLink::after {
   content: '';
   position: absolute;
   bottom: 0;
