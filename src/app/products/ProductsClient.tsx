@@ -32,11 +32,6 @@ export default function ProductsPage() {
 
   return (
     <main className={styles.main}>
-      <div style={{ background: '#fff9e6', border: '1px solid #ffe0b2', padding: '12px', margin: '20px auto', maxWidth: '1200px', borderRadius: '8px', color: '#b78103', fontSize: '13px', fontFamily: 'monospace' }}>
-        Debug: dbProductsRaw length = {dbProductsRaw?.length || 0}. 
-        IDs: {JSON.stringify(dbProductsRaw?.map((p: any) => p.id))}. 
-        displayProducts length = {displayProducts.length}
-      </div>
       {/* ── HERO HEADER ────────────────────────────────────── */}
       <section className={styles.hero}>
         <div className={styles.heroContent}>
