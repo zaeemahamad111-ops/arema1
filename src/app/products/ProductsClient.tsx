@@ -12,6 +12,15 @@ const CATALOG_PRODUCTS = [
   { id: 'biryani-rice', image: '/images/product-bag-nobg.png' },
   { id: 'navara-rice', image: '/images/product-bag-nobg.png' },
   { id: 'gandhakasala-rice', image: '/images/product-bag-nobg.png' },
+  { id: 'jyothi-matta', image: '/images/product-bag-nobg.png' },
+  { id: 'uma-matta', image: '/images/product-bag-nobg.png' },
+  { id: 'kanjana-matta', image: '/images/product-bag-nobg.png' },
+  { id: 'chitteni-matta', image: '/images/product-bag-nobg.png' },
+  { id: 'ast-white-rice', image: '/images/product-bag-nobg.png' },
+  { id: 'puttu-podi', image: '/images/product-bag-nobg.png' },
+  { id: 'idiyappam-podi', image: '/images/product-bag-nobg.png' },
+  { id: 'pathiri-podi', image: '/images/product-bag-nobg.png' },
+  { id: 'kondattam', image: '/images/product-bag-nobg.png' },
 ];
 
 export default function ProductsPage() {

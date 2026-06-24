@@ -145,7 +145,16 @@ async function seed() {
     { id: 'aromatic-rice', image_url: '/images/product-bag-nobg.png' },
     { id: 'biryani-rice', image_url: '/images/product-bag-nobg.png' },
     { id: 'navara-rice', image_url: '/images/product-bag-nobg.png' },
-    { id: 'gandhakasala-rice', image_url: '/images/product-bag-nobg.png' }
+    { id: 'gandhakasala-rice', image_url: '/images/product-bag-nobg.png' },
+    { id: 'jyothi-matta', image_url: '/images/product-bag-nobg.png' },
+    { id: 'uma-matta', image_url: '/images/product-bag-nobg.png' },
+    { id: 'kanjana-matta', image_url: '/images/product-bag-nobg.png' },
+    { id: 'chitteni-matta', image_url: '/images/product-bag-nobg.png' },
+    { id: 'ast-white-rice', image_url: '/images/product-bag-nobg.png' },
+    { id: 'puttu-podi', image_url: '/images/product-bag-nobg.png' },
+    { id: 'idiyappam-podi', image_url: '/images/product-bag-nobg.png' },
+    { id: 'pathiri-podi', image_url: '/images/product-bag-nobg.png' },
+    { id: 'kondattam', image_url: '/images/product-bag-nobg.png' }
   ];
   
   // Upsert base products
