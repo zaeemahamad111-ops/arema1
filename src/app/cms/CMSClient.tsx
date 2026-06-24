@@ -9,8 +9,8 @@ import { LANGUAGES, LanguageCode } from '@/i18n/translations';
 function flattenObject(obj: any, prefix = ''): Record<string, string> {
   const results: Record<string, string> = {};
   for (const k in obj) {
-    if (prefix === '' && (k === 'productsData' || k === 'blogData')) {
-      continue;
+    if (prefix === '' && (k === 'productsData' || k === 'blogData' || k === 'seo')) {
+      continue; // Skip raw data structures to handle them specifically
     }
     const key = prefix ? `${prefix}.${k}` : k;
     const val = obj[k];
@@ -25,24 +25,115 @@ function flattenObject(obj: any, prefix = ''): Record<string, string> {
   return results;
 }
 
-// Group definitions for page-wise editing
-const PAGE_GROUPS = [
-  { id: 'nav-footer', name: 'Navigation & Footer', prefixes: ['nav.', 'footer.'] },
-  { id: 'home', name: 'Home Page', prefixes: ['hero.', 'founder.', 'globalReach.', 'whyArema.', 'products.', 'palakkad.', 'blog.', 'cta.'] },
-  { id: 'our-story', name: 'Our Story Page', prefixes: ['ourStoryPage.'] },
-  { id: 'why-arema', name: 'Why Choose Arema Page', prefixes: ['whyAremaPage.'] },
-  { id: 'products-page', name: 'Products Catalog Page', prefixes: ['productsPage.', 'productDetail.'] },
-  { id: 'certs', name: 'Certificates Page', prefixes: ['certsPage.'] },
-  { id: 'blog-page', name: 'Blog Catalog Page', prefixes: ['blogPage.'] },
-  { id: 'contact', name: 'Contact Page', prefixes: ['contactPage.'] },
+// Sidebar Navigation config
+interface SidebarItem {
+  id: string;
+  name: string;
+  type: 'page' | 'products' | 'blogs';
+  group: 'sections' | 'catalogs';
+  prefixes?: string[];
+  seoKey?: string;
+  mediaKeys?: { key: string; label: string; type: 'image' | 'video' | 'text' }[];
+}
+
+const SIDEBAR_ITEMS: SidebarItem[] = [
+  {
+    id: 'general',
+    name: 'General Settings',
+    type: 'page',
+    group: 'sections',
+    prefixes: ['nav.', 'footer.'],
+    mediaKeys: [
+      { key: 'logo', label: 'Website Logo Image', type: 'image' },
+      { key: 'whatsapp_number', label: 'WhatsApp Call Link Number', type: 'text' },
+      { key: 'founder_video', label: 'Founder Story Background Video', type: 'video' }
+    ]
+  },
+  {
+    id: 'home',
+    name: 'Home Page',
+    type: 'page',
+    group: 'sections',
+    prefixes: ['hero.', 'founder.', 'globalReach.', 'whyArema.', 'products.', 'palakkad.', 'blog.', 'cta.'],
+    seoKey: 'home'
+  },
+  {
+    id: 'our-story',
+    name: 'Our Story Page',
+    type: 'page',
+    group: 'sections',
+    prefixes: ['ourStoryPage.'],
+    seoKey: 'ourStory',
+    mediaKeys: [
+      { key: 'ourstory_hero', label: 'Hero Background Banner', type: 'image' },
+      { key: 'ourstory_founder', label: 'Founder Portrait Image', type: 'image' },
+      { key: 'ourstory_quote_bg', label: 'Quote Highlight Background', type: 'image' }
+    ]
+  },
+  {
+    id: 'why-arema',
+    name: 'Why Choose Arema',
+    type: 'page',
+    group: 'sections',
+    prefixes: ['whyAremaPage.'],
+    seoKey: 'whyArema',
+    mediaKeys: [
+      { key: 'whyarema_strip', label: 'Paddy Fields Highlight Strip', type: 'image' },
+      { key: 'whyarema_split', label: 'Features Split Visual Banner', type: 'image' }
+    ]
+  },
+  {
+    id: 'products-catalog',
+    name: 'Products Page Text',
+    type: 'page',
+    group: 'sections',
+    prefixes: ['productsPage.', 'productDetail.'],
+    seoKey: 'products'
+  },
+  {
+    id: 'certs',
+    name: 'Certificates Page',
+    type: 'page',
+    group: 'sections',
+    prefixes: ['certsPage.'],
+    seoKey: 'certificates'
+  },
+  {
+    id: 'blog-page',
+    name: 'Blog Catalog Page',
+    type: 'page',
+    group: 'sections',
+    prefixes: ['blogPage.'],
+    seoKey: 'blog'
+  },
+  {
+    id: 'contact',
+    name: 'Contact Page',
+    type: 'page',
+    group: 'sections',
+    prefixes: ['contactPage.'],
+    seoKey: 'contact'
+  },
+  {
+    id: 'products-list',
+    name: 'Product Catalog Entries',
+    type: 'products',
+    group: 'catalogs'
+  },
+  {
+    id: 'blogs-list',
+    name: 'Blog Articles Manager',
+    type: 'blogs',
+    group: 'catalogs'
+  }
 ];
 
 export default function CMSClient() {
-  const [activeTab, setActiveTab] = useState<'pages' | 'products' | 'blogs' | 'media'>('pages');
+  const [activeItem, setActiveItem] = useState<string>('general');
+  const [activeSubTab, setActiveSubTab] = useState<'texts' | 'seo' | 'media'>('texts');
   const [selectedLang, setSelectedLang] = useState<LanguageCode>('en');
-  const [selectedPageGroup, setSelectedPageGroup] = useState(PAGE_GROUPS[0].id);
 
-  // Database Data States
+  // Supabase states
   const [siteTranslations, setSiteTranslations] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [productTranslations, setProductTranslations] = useState<any[]>([]);
@@ -50,10 +141,10 @@ export default function CMSClient() {
   const [blogTranslations, setBlogTranslations] = useState<any[]>([]);
   const [imageOverrides, setImageOverrides] = useState<any[]>([]);
 
-  // Draft States
+  // Page Editing Drafts
   const [draftTranslations, setDraftTranslations] = useState<Record<string, string>>({});
-  
-  // Active Product Editing State
+
+  // Product Selection/Drafts
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [productDraft, setProductDraft] = useState({
@@ -67,7 +158,7 @@ export default function CMSClient() {
     specs: [] as { label: string; value: string }[],
   });
 
-  // Active Blog Editing State
+  // Blog Selection/Drafts
   const [selectedBlogId, setSelectedBlogId] = useState<string | null>(null);
   const [isAddingBlog, setIsAddingBlog] = useState(false);
   const [blogDraft, setBlogDraft] = useState({
@@ -81,19 +172,13 @@ export default function CMSClient() {
     body: [] as string[],
   });
 
-  // Global variables & override draft states
-  const [overrideDraft, setOverrideDraft] = useState({
-    key: '',
-    url: '',
-  });
-
-  // UI Status
+  // UI status
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ text: string; error: boolean } | null>(null);
   const [uploadingFile, setUploadingFile] = useState(false);
 
-  // Load all data from Supabase
+  // Fetch Database State
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -130,7 +215,7 @@ export default function CMSClient() {
       if (blgTrans) setBlogTranslations(blgTrans);
       if (imgs) setImageOverrides(imgs);
     } catch (err: any) {
-      showStatus('Failed to retrieve content from Supabase. Verify connection settings.', true);
+      showStatus('Connection with Supabase failed. Check configuration.', true);
     } finally {
       setLoading(false);
     }
@@ -140,28 +225,54 @@ export default function CMSClient() {
     fetchData();
   }, []);
 
-  // Update page translation drafts when selected language or group changes
+  // Update Page drafts when activeItem, selectedLang, or siteTranslations load/change
   useEffect(() => {
+    const activeConfig = SIDEBAR_ITEMS.find(item => item.id === activeItem);
+    if (!activeConfig || activeConfig.type !== 'page') return;
+
     const flatEn = flattenObject(en);
     const draft: Record<string, string> = {};
 
-    // Get prefixes for active group
-    const activeGroup = PAGE_GROUPS.find(g => g.id === selectedPageGroup);
-    if (!activeGroup) return;
+    // 1. Text overrides keys matching page prefixes
+    if (activeConfig.prefixes) {
+      Object.keys(flatEn).forEach(key => {
+        const matches = activeConfig.prefixes!.some(pfx => key.startsWith(pfx));
+        if (matches) {
+          const match = siteTranslations.find(t => t.key === key && t.lang === selectedLang);
+          draft[key] = match ? match.value : '';
+        }
+      });
+    }
 
-    Object.keys(flatEn).forEach(key => {
-      const matchesGroup = activeGroup.prefixes.some(pfx => key.startsWith(pfx));
-      if (matchesGroup) {
-        // Find existing override in database
+    // 2. SEO Keys
+    if (activeConfig.seoKey) {
+      const seoKeys = [
+        `seo.${activeConfig.seoKey}.title`,
+        `seo.${activeConfig.seoKey}.description`,
+        `seo.${activeConfig.seoKey}.keywords`
+      ];
+      seoKeys.forEach(key => {
         const match = siteTranslations.find(t => t.key === key && t.lang === selectedLang);
         draft[key] = match ? match.value : '';
-      }
-    });
+      });
+    }
 
     setDraftTranslations(draft);
-  }, [selectedLang, selectedPageGroup, siteTranslations]);
+  }, [activeItem, selectedLang, siteTranslations]);
 
-  // Load product draft when selected product or language changes
+  // Adjust active tab if the newly selected page does not support the active tab
+  useEffect(() => {
+    const config = SIDEBAR_ITEMS.find(item => item.id === activeItem);
+    if (config?.type === 'page') {
+      if (activeSubTab === 'seo' && !config.seoKey) {
+        setActiveSubTab('texts');
+      } else if (activeSubTab === 'media' && !config.mediaKeys) {
+        setActiveSubTab('texts');
+      }
+    }
+  }, [activeItem]);
+
+  // Update Product form draft
   useEffect(() => {
     if (isAddingProduct) return;
     if (!selectedProductId) return;
@@ -181,7 +292,7 @@ export default function CMSClient() {
     });
   }, [selectedProductId, selectedLang, products, productTranslations, isAddingProduct]);
 
-  // Load blog draft when selected blog or language changes
+  // Update Blog form draft
   useEffect(() => {
     if (isAddingBlog) return;
     if (!selectedBlogId) return;
@@ -213,7 +324,8 @@ export default function CMSClient() {
     window.location.reload();
   };
 
-  // ── Pages Save Handler ───────────────────────────────────────────────
+  // ── SAVE HANDLERS ──────────────────────────────────────────────────
+
   const savePageTranslations = async () => {
     setSaving(true);
     try {
@@ -226,7 +338,7 @@ export default function CMSClient() {
         }));
 
       if (updates.length === 0) {
-        showStatus('No translations to save.');
+        showStatus('No new translations to save.');
         setSaving(false);
         return;
       }
@@ -234,34 +346,30 @@ export default function CMSClient() {
       const { error } = await supabase.from('site_translations').upsert(updates, { onConflict: 'key,lang' });
       if (error) throw error;
 
-      showStatus('Translations saved successfully!');
-      // Refetch to align states
+      showStatus('Page updates and SEO metadata saved successfully!');
+      
       const { data: trans } = await supabase.from('site_translations').select('*');
       if (trans) setSiteTranslations(trans);
     } catch (err: any) {
-      showStatus(`Error saving page translations: ${err.message}`, true);
+      showStatus(`Failed to save: ${err.message}`, true);
     } finally {
       setSaving(false);
     }
   };
 
-  // ── Products Save & Delete Handlers ──────────────────────────────────
   const saveProduct = async () => {
     if (!productDraft.id) {
-      showStatus('Product ID (slug) is required.', true);
+      showStatus('Product slug is required.', true);
       return;
     }
     setSaving(true);
     try {
-      // 1. Save base product row
-      const { error: prodErr } = await supabase.from('products').upsert({
+      const { error: baseErr } = await supabase.from('products').upsert({
         id: productDraft.id,
         image_url: productDraft.image_url,
       }, { onConflict: 'id' });
+      if (baseErr) throw baseErr;
 
-      if (prodErr) throw prodErr;
-
-      // 2. Save translation row
       const { error: transErr } = await supabase.from('product_translations').upsert({
         product_id: productDraft.id,
         lang: selectedLang,
@@ -272,55 +380,48 @@ export default function CMSClient() {
         highlights: productDraft.highlights,
         specs: productDraft.specs,
       }, { onConflict: 'product_id,lang' });
-
       if (transErr) throw transErr;
 
-      showStatus('Product configurations saved successfully!');
-      
-      // Reset modes & reload database state
+      showStatus('Product settings updated successfully!');
       setIsAddingProduct(false);
       setSelectedProductId(productDraft.id);
       await fetchData();
     } catch (err: any) {
-      showStatus(`Error saving product: ${err.message}`, true);
+      showStatus(`Product save error: ${err.message}`, true);
     } finally {
       setSaving(false);
     }
   };
 
   const deleteProduct = async (id: string) => {
-    if (!confirm(`Are you sure you want to delete the product "${id}"? This deletes all localized details too.`)) return;
+    if (!confirm(`Permanently delete product "${id}" and all its multi-lingual details?`)) return;
     setSaving(true);
     try {
       const { error } = await supabase.from('products').delete().eq('id', id);
       if (error) throw error;
-      showStatus('Product deleted successfully.');
+      showStatus('Product deleted.');
       setSelectedProductId(null);
       await fetchData();
     } catch (err: any) {
-      showStatus(`Error deleting product: ${err.message}`, true);
+      showStatus(`Delete failed: ${err.message}`, true);
     } finally {
       setSaving(false);
     }
   };
 
-  // ── Blogs Save & Delete Handlers ─────────────────────────────────────
   const saveBlog = async () => {
     if (!blogDraft.id) {
-      showStatus('Blog ID (slug) is required.', true);
+      showStatus('Blog slug is required.', true);
       return;
     }
     setSaving(true);
     try {
-      // 1. Save base blog row
-      const { error: blogErr } = await supabase.from('blogs').upsert({
+      const { error: baseErr } = await supabase.from('blogs').upsert({
         id: blogDraft.id,
         image_url: blogDraft.image_url,
       }, { onConflict: 'id' });
+      if (baseErr) throw baseErr;
 
-      if (blogErr) throw blogErr;
-
-      // 2. Save translation row
       const { error: transErr } = await supabase.from('blog_translations').upsert({
         blog_id: blogDraft.id,
         lang: selectedLang,
@@ -331,39 +432,38 @@ export default function CMSClient() {
         excerpt: blogDraft.excerpt,
         body: blogDraft.body,
       }, { onConflict: 'blog_id,lang' });
-
       if (transErr) throw transErr;
 
-      showStatus('Blog post configurations saved successfully!');
-
+      showStatus('Blog article saved successfully!');
       setIsAddingBlog(false);
       setSelectedBlogId(blogDraft.id);
       await fetchData();
     } catch (err: any) {
-      showStatus(`Error saving blog post: ${err.message}`, true);
+      showStatus(`Blog save error: ${err.message}`, true);
     } finally {
       setSaving(false);
     }
   };
 
   const deleteBlog = async (id: string) => {
-    if (!confirm(`Are you sure you want to delete the blog post "${id}"?`)) return;
+    if (!confirm(`Permanently delete blog article "${id}"?`)) return;
     setSaving(true);
     try {
       const { error } = await supabase.from('blogs').delete().eq('id', id);
       if (error) throw error;
-      showStatus('Blog post deleted successfully.');
+      showStatus('Blog article removed.');
       setSelectedBlogId(null);
       await fetchData();
     } catch (err: any) {
-      showStatus(`Error deleting blog post: ${err.message}`, true);
+      showStatus(`Delete failed: ${err.message}`, true);
     } finally {
       setSaving(false);
     }
   };
 
-  // ── Media Upload & Override Handlers ─────────────────────────────────
-  const uploadFile = async (e: React.ChangeEvent<HTMLInputElement>, target: 'product' | 'blog' | 'global') => {
+  // ── FILE UPLOADS & OVERRIDES ──────────────────────────────────────
+
+  const uploadFile = async (e: React.ChangeEvent<HTMLInputElement>, target: 'product' | 'blog' | string) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -373,28 +473,33 @@ export default function CMSClient() {
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `cms/${fileName}`;
 
-      // Upload to cms-media bucket
       const { error: uploadErr } = await supabase.storage
         .from('cms-media')
         .upload(filePath, file, { cacheControl: '3600', upsert: true });
 
-      if (uploadErr) {
-        throw new Error(`Upload error: ${uploadErr.message}. Make sure the bucket "cms-media" exists and is public.`);
-      }
+      if (uploadErr) throw uploadErr;
 
-      // Resolve public URL
       const { data } = supabase.storage.from('cms-media').getPublicUrl(filePath);
       const publicUrl = data.publicUrl;
 
       if (target === 'product') {
         setProductDraft(prev => ({ ...prev, image_url: publicUrl }));
+        showStatus('Product asset uploaded successfully.');
       } else if (target === 'blog') {
         setBlogDraft(prev => ({ ...prev, image_url: publicUrl }));
-      } else if (target === 'global') {
-        setOverrideDraft(prev => ({ ...prev, url: publicUrl }));
-      }
+        showStatus('Blog article asset uploaded.');
+      } else {
+        // Direct media override upsert
+        const { error: overrideErr } = await supabase.from('image_overrides').upsert({
+          key: target,
+          url: publicUrl
+        }, { onConflict: 'key' });
 
-      showStatus('File uploaded and path resolved successfully!');
+        if (overrideErr) throw overrideErr;
+
+        showStatus(`Media asset for key "${target}" updated successfully!`);
+        await fetchData();
+      }
     } catch (err: any) {
       showStatus(`File upload failed: ${err.message}`, true);
     } finally {
@@ -402,39 +507,34 @@ export default function CMSClient() {
     }
   };
 
-  const saveImageOverride = async () => {
-    if (!overrideDraft.key || !overrideDraft.url) {
-      showStatus('Both override Key and URL / Value are required.', true);
-      return;
-    }
+  const handleManualUrlSave = async (key: string, value: string) => {
+    if (!value.trim()) return;
     setSaving(true);
     try {
       const { error } = await supabase.from('image_overrides').upsert({
-        key: overrideDraft.key,
-        url: overrideDraft.url,
+        key,
+        url: value
       }, { onConflict: 'key' });
-
       if (error) throw error;
-      showStatus(`Setting override for "${overrideDraft.key}" saved!`);
-      setOverrideDraft({ key: '', url: '' });
+      showStatus(`Override value for "${key}" updated.`);
       await fetchData();
     } catch (err: any) {
-      showStatus(`Error saving override: ${err.message}`, true);
+      showStatus(`Update failed: ${err.message}`, true);
     } finally {
       setSaving(false);
     }
   };
 
-  const deleteImageOverride = async (key: string) => {
-    if (!confirm(`Remove the override for "${key}"?`)) return;
+  const removeMediaOverride = async (key: string) => {
+    if (!confirm(`Delete media override setting for "${key}"?`)) return;
     setSaving(true);
     try {
       const { error } = await supabase.from('image_overrides').delete().eq('key', key);
       if (error) throw error;
-      showStatus(`Override for "${key}" removed.`);
+      showStatus(`Cleared override for "${key}".`);
       await fetchData();
     } catch (err: any) {
-      showStatus(`Error removing override: ${err.message}`, true);
+      showStatus(`Failed to clear: ${err.message}`, true);
     } finally {
       setSaving(false);
     }
@@ -452,7 +552,7 @@ export default function CMSClient() {
         fontFamily: 'var(--font-body, system-ui)'
       }}>
         <div style={{ textAlign: 'center' }}>
-          <div className="spinner" style={{
+          <div style={{
             width: '40px',
             height: '40px',
             border: '3px solid rgba(219, 187, 160, 0.1)',
@@ -461,14 +561,14 @@ export default function CMSClient() {
             animation: 'spin 1s linear infinite',
             margin: '0 auto 16px auto'
           }} />
-          <p style={{ fontSize: '0.9rem', color: 'rgba(244, 239, 234, 0.6)' }}>Connecting to Supabase...</p>
-          <style dangerouslySetInnerHTML={{ __html: `
-            @keyframes spin { to { transform: rotate(360deg); } }
-          `}} />
+          <p style={{ fontSize: '0.85rem', color: 'rgba(244, 239, 234, 0.6)' }}>Retrieving schema from Supabase...</p>
+          <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />
         </div>
       </div>
     );
   }
+
+  const activeConfig = SIDEBAR_ITEMS.find(item => item.id === activeItem);
 
   return (
     <div style={{
@@ -479,11 +579,12 @@ export default function CMSClient() {
       display: 'flex',
       flexDirection: 'column'
     }}>
+      
       {/* ── TOP HEADER ────────────────────────────────────────────────── */}
       <header style={{
         padding: '16px 32px',
-        background: 'rgba(25, 20, 16, 0.8)',
-        backdropFilter: 'blur(10px)',
+        background: 'rgba(25, 20, 16, 0.85)',
+        backdropFilter: 'blur(12px)',
         borderBottom: '1px solid rgba(219, 187, 160, 0.08)',
         display: 'flex',
         alignItems: 'center',
@@ -492,7 +593,7 @@ export default function CMSClient() {
         top: 0,
         zIndex: 100
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{
             fontFamily: 'var(--font-display, Georgia)',
             fontSize: '1.4rem',
@@ -511,50 +612,23 @@ export default function CMSClient() {
             fontWeight: 600,
             textTransform: 'uppercase',
             letterSpacing: '0.05em'
-          }}>v1.0</span>
+          }}>Database Backed</span>
         </div>
 
-        {/* Tab Controls */}
-        <nav style={{ display: 'flex', gap: '8px' }}>
-          {[
-            { id: 'pages', label: 'Pages Text' },
-            { id: 'products', label: 'Product Catalog' },
-            { id: 'blogs', label: 'Blog Posts' },
-            { id: 'media', label: 'Media & Settings' },
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              style={{
-                padding: '8px 16px',
-                background: activeTab === tab.id ? 'rgba(219, 187, 160, 0.1)' : 'transparent',
-                border: 'none',
-                borderRadius: '6px',
-                color: activeTab === tab.id ? '#D4AF37' : 'rgba(244, 239, 234, 0.6)',
-                fontSize: '0.85rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </nav>
-
-        <div>
+        {/* Global actions */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <button
             onClick={handleLogout}
             style={{
-              padding: '6px 12px',
+              padding: '8px 16px',
               background: 'transparent',
               border: '1px solid rgba(220, 53, 69, 0.3)',
               borderRadius: '6px',
               color: '#EA868F',
               fontSize: '0.8rem',
-              fontWeight: 500,
+              fontWeight: 600,
               cursor: 'pointer',
-              transition: 'background 0.2s'
+              transition: 'all 0.2s'
             }}
             onMouseOver={(e) => e.currentTarget.style.background = 'rgba(220, 53, 69, 0.08)'}
             onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
@@ -564,91 +638,158 @@ export default function CMSClient() {
         </div>
       </header>
 
-      {/* Status Overlay Message */}
-      {statusMessage && (
-        <div style={{
-          position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          background: statusMessage.error ? '#5c191e' : '#1e4620',
-          border: `1px solid ${statusMessage.error ? '#EA868F' : '#75b798'}`,
-          color: statusMessage.error ? '#F8D7DA' : '#D1E7DD',
-          padding: '16px 24px',
-          borderRadius: '8px',
-          fontSize: '0.9rem',
-          zIndex: 1000,
-          boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
-          maxWidth: '400px'
-        }}>
-          {statusMessage.text}
-        </div>
-      )}
-
-      {/* Main Grid Panel */}
+      {/* Main Container */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         
-        {/* ─── TAB 1: PAGES TEXT EDITOR ──────────────────────────────── */}
-        {activeTab === 'pages' && (
-          <>
-            {/* Sidebar */}
-            <aside style={{
-              width: '280px',
-              borderRight: '1px solid rgba(219, 187, 160, 0.08)',
-              background: 'rgba(20, 15, 12, 0.3)',
-              padding: '24px 16px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '6px'
-            }}>
-              <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(244, 239, 234, 0.4)', marginBottom: '12px', paddingLeft: '8px', fontWeight: 600 }}>Sections</div>
-              {PAGE_GROUPS.map(g => (
+        {/* ── LEFT SIDEBAR NAVIGATION ──────────────────────────────────── */}
+        <aside style={{
+          width: '280px',
+          borderRight: '1px solid rgba(219, 187, 160, 0.08)',
+          background: 'rgba(20, 15, 12, 0.6)',
+          backdropFilter: 'blur(12px)',
+          padding: '24px 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '24px',
+          overflowY: 'auto'
+        }}>
+          
+          <div>
+            <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(244, 239, 234, 0.35)', marginBottom: '12px', paddingLeft: '8px', fontWeight: 700 }}>Page Sections</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              {SIDEBAR_ITEMS.filter(item => item.group === 'sections').map(item => (
                 <button
-                  key={g.id}
-                  onClick={() => setSelectedPageGroup(g.id)}
+                  key={item.id}
+                  onClick={() => {
+                    setActiveItem(item.id);
+                  }}
                   style={{
                     width: '100%',
                     textAlign: 'left',
-                    padding: '10px 12px',
-                    background: selectedPageGroup === g.id ? 'rgba(219, 187, 160, 0.06)' : 'transparent',
+                    padding: '10px 14px',
+                    background: activeItem === item.id ? 'rgba(219, 187, 160, 0.08)' : 'transparent',
                     border: 'none',
-                    borderRadius: '8px',
-                    color: selectedPageGroup === g.id ? '#D4AF37' : 'rgba(244, 239, 234, 0.7)',
+                    borderLeft: activeItem === item.id ? '3px solid #D4AF37' : '3px solid transparent',
+                    borderRadius: '0 8px 8px 0',
+                    color: activeItem === item.id ? '#D4AF37' : 'rgba(244, 239, 234, 0.7)',
                     fontSize: '0.85rem',
-                    fontWeight: 500,
+                    fontWeight: activeItem === item.id ? 600 : 500,
                     cursor: 'pointer',
-                    transition: 'all 0.15s'
+                    transition: 'all 0.2s',
+                    outline: 'none'
+                  }}
+                  onMouseOver={(e) => {
+                    if (activeItem !== item.id) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
+                  }}
+                  onMouseOut={(e) => {
+                    if (activeItem !== item.id) e.currentTarget.style.background = 'transparent';
                   }}
                 >
-                  {g.name}
+                  {item.name}
                 </button>
               ))}
-            </aside>
+            </div>
+          </div>
 
-            {/* Main Fields Form */}
-            <main style={{ flex: 1, padding: '32px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid rgba(219, 187, 160, 0.08)', paddingBottom: '16px' }}>
+          <div>
+            <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(244, 239, 234, 0.35)', marginBottom: '12px', paddingLeft: '8px', fontWeight: 700 }}>Catalog Managers</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              {SIDEBAR_ITEMS.filter(item => item.group === 'catalogs').map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setActiveItem(item.id);
+                  }}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '10px 14px',
+                    background: activeItem === item.id ? 'rgba(219, 187, 160, 0.08)' : 'transparent',
+                    border: 'none',
+                    borderLeft: activeItem === item.id ? '3px solid #D4AF37' : '3px solid transparent',
+                    borderRadius: '0 8px 8px 0',
+                    color: activeItem === item.id ? '#D4AF37' : 'rgba(244, 239, 234, 0.7)',
+                    fontSize: '0.85rem',
+                    fontWeight: activeItem === item.id ? 600 : 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    outline: 'none'
+                  }}
+                  onMouseOver={(e) => {
+                    if (activeItem !== item.id) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
+                  }}
+                  onMouseOut={(e) => {
+                    if (activeItem !== item.id) e.currentTarget.style.background = 'transparent';
+                  }}
+                >
+                  {item.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+        </aside>
+
+        {/* ── RIGHT CONTENT PANEL ─────────────────────────────────────── */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+          
+          {/* Status message */}
+          {statusMessage && (
+            <div style={{
+              position: 'fixed',
+              bottom: '24px',
+              right: '24px',
+              background: statusMessage.error ? '#5c191e' : '#1e4620',
+              border: `1px solid ${statusMessage.error ? '#EA868F' : '#75b798'}`,
+              color: statusMessage.error ? '#F8D7DA' : '#D1E7DD',
+              padding: '16px 24px',
+              borderRadius: '8px',
+              fontSize: '0.9rem',
+              zIndex: 1000,
+              boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
+              maxWidth: '400px'
+            }}>
+              {statusMessage.text}
+            </div>
+          )}
+
+          {/* PAGE SECTION EDITOR VIEW */}
+          {activeConfig && activeConfig.type === 'page' && (
+            <main style={{ padding: '32px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+              
+              {/* Header with Title and Language Picker */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '24px',
+                borderBottom: '1px solid rgba(219, 187, 160, 0.08)',
+                paddingBottom: '20px'
+              }}>
                 <div>
-                  <h2 style={{ fontSize: '1.4rem', margin: '0 0 4px 0', fontFamily: 'var(--font-display, Georgia)', fontWeight: 600 }}>
-                    {PAGE_GROUPS.find(g => g.id === selectedPageGroup)?.name}
+                  <h2 style={{ fontSize: '1.6rem', margin: '0 0 6px 0', fontFamily: 'var(--font-display, Georgia)', fontWeight: 600 }}>
+                    {activeConfig.name}
                   </h2>
-                  <p style={{ fontSize: '0.8rem', color: 'rgba(244, 239, 234, 0.4)', margin: 0 }}>Configure override texts. Empty fields will automatically fall back to baseline English translations.</p>
+                  <p style={{ fontSize: '0.85rem', color: 'rgba(244, 239, 234, 0.45)', margin: 0 }}>
+                    Manage translations, custom SEO, and media assets overrides.
+                  </p>
                 </div>
-                
-                {/* Language Picker Dropdown */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <label style={{ fontSize: '0.8rem', color: 'rgba(244, 239, 234, 0.6)', fontWeight: 600 }}>Language:</label>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ fontSize: '0.85rem', color: 'rgba(244, 239, 234, 0.65)', fontWeight: 600 }}>Active Language:</span>
                   <select
                     value={selectedLang}
                     onChange={(e) => setSelectedLang(e.target.value as LanguageCode)}
                     style={{
-                      padding: '8px 16px',
+                      padding: '10px 16px',
                       background: '#1A130E',
-                      border: '1px solid rgba(219, 187, 160, 0.2)',
-                      borderRadius: '6px',
+                      border: '1px solid rgba(219, 187, 160, 0.25)',
+                      borderRadius: '8px',
                       color: '#F4EFEA',
                       fontSize: '0.85rem',
                       fontWeight: 600,
-                      outline: 'none'
+                      outline: 'none',
+                      cursor: 'pointer'
                     }}
                   >
                     {LANGUAGES.map(l => (
@@ -660,273 +801,641 @@ export default function CMSClient() {
                 </div>
               </div>
 
-              {/* Form Fields list */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', flex: 1 }}>
-                {Object.keys(draftTranslations).length === 0 ? (
-                  <div style={{ textAlign: 'center', color: 'rgba(244, 239, 234, 0.3)', padding: '40px 0' }}>No keys match this section.</div>
-                ) : (
-                  Object.keys(draftTranslations).sort().map(key => {
-                    const baselineValue = flattenObject(en)[key] || '';
-                    const isArray = baselineValue.startsWith('[') || baselineValue.startsWith('{');
+              {/* Sub Navigation Tabs for the Page (Texts / SEO / Media) */}
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '32px', borderBottom: '1px solid rgba(219, 187, 160, 0.04)', paddingBottom: '8px' }}>
+                <button
+                  onClick={() => setActiveSubTab('texts')}
+                  style={{
+                    padding: '8px 20px',
+                    background: 'transparent',
+                    border: 'none',
+                    borderBottom: activeSubTab === 'texts' ? '2px solid #D4AF37' : '2px solid transparent',
+                    color: activeSubTab === 'texts' ? '#D4AF37' : 'rgba(244, 239, 234, 0.55)',
+                    fontSize: '0.9rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    outline: 'none'
+                  }}
+                >
+                  Text Content
+                </button>
 
-                    return (
-                      <div key={key} style={{
-                        background: 'rgba(255, 255, 255, 0.01)',
-                        border: '1px solid rgba(219, 187, 160, 0.04)',
-                        padding: '20px',
-                        borderRadius: '10px'
-                      }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#D4AF37', fontFamily: 'monospace' }}>{key}</span>
-                          {isArray && (
-                            <span style={{
-                              fontSize: '0.65rem',
-                              background: 'rgba(0, 123, 255, 0.1)',
-                              color: '#6ea8fe',
-                              padding: '2px 8px',
-                              borderRadius: '4px',
-                              fontWeight: 600
-                            }}>JSON Array</span>
-                          )}
-                        </div>
+                {activeConfig.seoKey && (
+                  <button
+                    onClick={() => setActiveSubTab('seo')}
+                    style={{
+                      padding: '8px 20px',
+                      background: 'transparent',
+                      border: 'none',
+                      borderBottom: activeSubTab === 'seo' ? '2px solid #D4AF37' : '2px solid transparent',
+                      color: activeSubTab === 'seo' ? '#D4AF37' : 'rgba(244, 239, 234, 0.55)',
+                      fontSize: '0.9rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      outline: 'none'
+                    }}
+                  >
+                    SEO Tags
+                  </button>
+                )}
 
-                        {/* Baseline display */}
-                        <div style={{
-                          fontSize: '0.8rem',
-                          background: 'rgba(0, 0, 0, 0.15)',
-                          padding: '10px 14px',
-                          borderRadius: '6px',
-                          color: 'rgba(244, 239, 234, 0.5)',
-                          marginBottom: '12px',
-                          borderLeft: '2px solid rgba(219, 187, 160, 0.2)'
+                {activeConfig.mediaKeys && (
+                  <button
+                    onClick={() => setActiveSubTab('media')}
+                    style={{
+                      padding: '8px 20px',
+                      background: 'transparent',
+                      border: 'none',
+                      borderBottom: activeSubTab === 'media' ? '2px solid #D4AF37' : '2px solid transparent',
+                      color: activeSubTab === 'media' ? '#D4AF37' : 'rgba(244, 239, 234, 0.55)',
+                      fontSize: '0.9rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      outline: 'none'
+                    }}
+                  >
+                    Media & Overrides
+                  </button>
+                )}
+              </div>
+
+              {/* TAB 1: Standard Text Fields */}
+              {activeSubTab === 'texts' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', flex: 1 }}>
+                  {Object.keys(draftTranslations)
+                    .filter(key => !key.startsWith('seo.')) // Hide SEO keys here
+                    .sort()
+                    .map(key => {
+                      const baselineValue = flattenObject(en)[key] || '';
+                      const isArray = baselineValue.startsWith('[') || baselineValue.startsWith('{');
+
+                      return (
+                        <div key={key} style={{
+                          background: 'rgba(255, 255, 255, 0.01)',
+                          border: '1px solid rgba(219, 187, 160, 0.04)',
+                          padding: '24px',
+                          borderRadius: '12px'
                         }}>
-                          <strong>English Baseline:</strong> {baselineValue}
-                        </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#D4AF37', fontFamily: 'monospace' }}>{key}</span>
+                            {isArray && (
+                              <span style={{
+                                fontSize: '0.65rem',
+                                background: 'rgba(110, 168, 254, 0.1)',
+                                color: '#6ea8fe',
+                                padding: '2px 8px',
+                                borderRadius: '4px',
+                                fontWeight: 700
+                              }}>JSON Array</span>
+                            )}
+                          </div>
 
-                        {/* Input Area */}
-                        <textarea
-                          rows={isArray ? 5 : 2}
-                          value={draftTranslations[key]}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setDraftTranslations(prev => ({ ...prev, [key]: val }));
-                          }}
-                          placeholder={isArray ? '[ "Highlight 1", "Highlight 2" ]' : `Enter ${LANGUAGES.find(l => l.code === selectedLang)?.name} translation...`}
+                          <div style={{
+                            fontSize: '0.85rem',
+                            background: 'rgba(0, 0, 0, 0.2)',
+                            padding: '12px 16px',
+                            borderRadius: '8px',
+                            color: 'rgba(244, 239, 234, 0.5)',
+                            marginBottom: '14px',
+                            borderLeft: '3px solid rgba(219, 187, 160, 0.3)',
+                            lineHeight: 1.5
+                          }}>
+                            <strong>English baseline:</strong> {baselineValue}
+                          </div>
+
+                          <textarea
+                            rows={isArray ? 5 : 2}
+                            value={draftTranslations[key] || ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setDraftTranslations(prev => ({ ...prev, [key]: val }));
+                            }}
+                            placeholder={isArray ? '[ "Item 1", "Item 2" ]' : `Enter ${LANGUAGES.find(l => l.code === selectedLang)?.name} translation...`}
+                            style={{
+                              width: '100%',
+                              padding: '14px 18px',
+                              background: '#0a0705',
+                              border: '1px solid rgba(219, 187, 160, 0.12)',
+                              borderRadius: '8px',
+                              color: '#F4EFEA',
+                              fontSize: '0.9rem',
+                              lineHeight: 1.5,
+                              outline: 'none',
+                              fontFamily: isArray ? 'monospace' : 'inherit',
+                              resize: 'vertical',
+                              transition: 'all 0.2s'
+                            }}
+                            onFocus={(e) => e.target.style.borderColor = 'rgba(219, 187, 160, 0.4)'}
+                            onBlur={(e) => e.target.style.borderColor = 'rgba(219, 187, 160, 0.12)'}
+                          />
+                        </div>
+                      );
+                    })}
+
+                  <div style={{
+                    position: 'sticky',
+                    bottom: 0,
+                    background: '#0F0A07',
+                    padding: '24px 0 16px 0',
+                    marginTop: '32px',
+                    borderTop: '1px solid rgba(219, 187, 160, 0.08)',
+                    display: 'flex',
+                    justifyContent: 'flex-end'
+                  }}>
+                    <button
+                      onClick={savePageTranslations}
+                      disabled={saving}
+                      style={{
+                        padding: '12px 32px',
+                        background: 'linear-gradient(135deg, #C5A059 0%, #A27B3C 100%)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        color: '#0F0A07',
+                        fontWeight: 700,
+                        cursor: saving ? 'not-allowed' : 'pointer',
+                        fontSize: '0.9rem',
+                        boxShadow: '0 4px 20px rgba(162, 123, 60, 0.25)',
+                        transition: 'opacity 0.2s'
+                      }}
+                    >
+                      {saving ? 'Saving...' : 'Save Text Content'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: SEO Details editing */}
+              {activeSubTab === 'seo' && activeConfig.seoKey && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', flex: 1 }}>
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.01)',
+                    border: '1px solid rgba(219, 187, 160, 0.04)',
+                    padding: '28px',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '20px'
+                  }}>
+                    <h3 style={{ fontSize: '1.1rem', color: '#D4AF37', margin: '0 0 8px 0', fontWeight: 600 }}>SEO Metadata</h3>
+                    
+                    {/* SEO Title */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.65)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Page Title Tag
+                      </label>
+                      <input
+                        type="text"
+                        value={draftTranslations[`seo.${activeConfig.seoKey}.title`] || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setDraftTranslations(prev => ({ ...prev, [`seo.${activeConfig.seoKey}.title`]: val }));
+                        }}
+                        placeholder="Page title text used by search engine search listings..."
+                        style={{
+                          width: '100%',
+                          padding: '12px 16px',
+                          background: '#0a0705',
+                          border: '1px solid rgba(219, 187, 160, 0.12)',
+                          borderRadius: '8px',
+                          color: '#F4EFEA',
+                          fontSize: '0.9rem',
+                          outline: 'none'
+                        }}
+                      />
+                    </div>
+
+                    {/* SEO Description */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.65)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Meta Description
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={draftTranslations[`seo.${activeConfig.seoKey}.description`] || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setDraftTranslations(prev => ({ ...prev, [`seo.${activeConfig.seoKey}.description`]: val }));
+                        }}
+                        placeholder="Provide a concise summary paragraph (approx 150-160 chars) about this page..."
+                        style={{
+                          width: '100%',
+                          padding: '12px 16px',
+                          background: '#0a0705',
+                          border: '1px solid rgba(219, 187, 160, 0.12)',
+                          borderRadius: '8px',
+                          color: '#F4EFEA',
+                          fontSize: '0.9rem',
+                          outline: 'none',
+                          resize: 'vertical',
+                          lineHeight: 1.5
+                        }}
+                      />
+                    </div>
+
+                    {/* SEO Keywords */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.65)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Meta Keywords
+                      </label>
+                      <input
+                        type="text"
+                        value={draftTranslations[`seo.${activeConfig.seoKey}.keywords`] || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setDraftTranslations(prev => ({ ...prev, [`seo.${activeConfig.seoKey}.keywords`]: val }));
+                        }}
+                        placeholder="e.g. matta rice, organic export, kerala, arema foods (comma-separated list)"
+                        style={{
+                          width: '100%',
+                          padding: '12px 16px',
+                          background: '#0a0705',
+                          border: '1px solid rgba(219, 187, 160, 0.12)',
+                          borderRadius: '8px',
+                          color: '#F4EFEA',
+                          fontSize: '0.9rem',
+                          outline: 'none'
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{
+                    position: 'sticky',
+                    bottom: 0,
+                    background: '#0F0A07',
+                    padding: '24px 0 16px 0',
+                    marginTop: '32px',
+                    borderTop: '1px solid rgba(219, 187, 160, 0.08)',
+                    display: 'flex',
+                    justifyContent: 'flex-end'
+                  }}>
+                    <button
+                      onClick={savePageTranslations}
+                      disabled={saving}
+                      style={{
+                        padding: '12px 32px',
+                        background: 'linear-gradient(135deg, #C5A059 0%, #A27B3C 100%)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        color: '#0F0A07',
+                        fontWeight: 700,
+                        cursor: saving ? 'not-allowed' : 'pointer',
+                        fontSize: '0.9rem',
+                        boxShadow: '0 4px 20px rgba(162, 123, 60, 0.25)'
+                      }}
+                    >
+                      {saving ? 'Saving...' : 'Save SEO Tags'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: Media Keys overrides editing */}
+              {activeSubTab === 'media' && activeConfig.mediaKeys && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px', flex: 1 }}>
+                  
+                  {/* Media uploads list */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    {activeConfig.mediaKeys.map(mKey => {
+                      const dbOverride = imageOverrides.find(o => o.key === mKey.key);
+                      const currentVal = dbOverride ? dbOverride.url : '';
+
+                      return (
+                        <div key={mKey.key} style={{
+                          background: 'rgba(255, 255, 255, 0.01)',
+                          border: '1px solid rgba(219, 187, 160, 0.06)',
+                          padding: '24px',
+                          borderRadius: '12px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '12px'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#D4AF37' }}>
+                              {mKey.label}
+                            </span>
+                            <span style={{ fontSize: '0.7rem', color: 'rgba(244, 239, 234, 0.4)', fontFamily: 'monospace' }}>
+                              key: {mKey.key}
+                            </span>
+                          </div>
+
+                          {/* Preview container */}
+                          {currentVal && mKey.type === 'image' && (
+                            <div style={{ height: '140px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(219, 187, 160, 0.1)', borderRadius: '6px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <img src={currentVal} alt="Dynamic Override" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                            </div>
+                          )}
+
+                          {currentVal && mKey.type === 'video' && (
+                            <div style={{ height: '140px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(219, 187, 160, 0.1)', borderRadius: '6px', overflow: 'hidden' }}>
+                              <video src={currentVal} controls muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            </div>
+                          )}
+
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <input
+                              type="text"
+                              value={currentVal}
+                              onChange={(e) => handleManualUrlSave(mKey.key, e.target.value)}
+                              placeholder={mKey.type === 'text' ? 'Provide override phone/value...' : 'Direct URL override path...'}
+                              style={{
+                                flex: 1,
+                                padding: '8px 12px',
+                                background: '#0a0705',
+                                border: '1px solid rgba(219, 187, 160, 0.12)',
+                                borderRadius: '6px',
+                                color: '#F4EFEA',
+                                fontSize: '0.8rem',
+                                outline: 'none'
+                              }}
+                            />
+                            {currentVal && (
+                              <button
+                                onClick={() => removeMediaOverride(mKey.key)}
+                                style={{
+                                  padding: '8px 12px',
+                                  background: 'rgba(220, 53, 69, 0.08)',
+                                  border: '1px solid rgba(220, 53, 69, 0.3)',
+                                  color: '#EA868F',
+                                  borderRadius: '6px',
+                                  fontSize: '0.8rem',
+                                  cursor: 'pointer',
+                                  fontWeight: 600
+                                }}
+                              >
+                                Clear
+                              </button>
+                            )}
+                          </div>
+
+                          {mKey.type !== 'text' && (
+                            <div style={{ position: 'relative' }}>
+                              <button style={{
+                                width: '100%',
+                                padding: '10px',
+                                background: 'rgba(219, 187, 160, 0.08)',
+                                border: '1px solid rgba(219, 187, 160, 0.2)',
+                                borderRadius: '6px',
+                                color: '#D4AF37',
+                                fontSize: '0.8rem',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                              }}>
+                                {uploadingFile ? 'Uploading Asset...' : `Upload New ${mKey.type === 'video' ? 'Video' : 'Image'}`}
+                              </button>
+                              <input
+                                type="file"
+                                accept={mKey.type === 'video' ? 'video/*' : 'image/*'}
+                                disabled={uploadingFile}
+                                onChange={(e) => uploadFile(e, mKey.key)}
+                                style={{
+                                  position: 'absolute',
+                                  inset: 0,
+                                  opacity: 0,
+                                  cursor: 'pointer'
+                                }}
+                              />
+                            </div>
+                          )}
+
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.01)',
+                    border: '1px solid rgba(219, 187, 160, 0.08)',
+                    borderRadius: '12px',
+                    padding: '24px',
+                    height: 'fit-content'
+                  }}>
+                    <h3 style={{ fontSize: '1rem', color: '#D4AF37', margin: '0 0 8px 0', fontWeight: 600 }}>Media Overriding Policy</h3>
+                    <p style={{ fontSize: '0.85rem', color: 'rgba(244, 239, 234, 0.5)', lineHeight: 1.6, margin: 0 }}>
+                      Uploading or overriding urls immediately maps resources for this section. Visitors loading the website will load these assets dynamically rather than baseline local files. Revert to defaults anytime by clicking <strong>Clear</strong>.
+                    </p>
+                  </div>
+
+                </div>
+              )}
+
+            </main>
+          )}
+
+          {/* CATALOG 1: PRODUCTS MANAGER VIEW */}
+          {activeItem === 'products-list' && (
+            <main style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+              
+              {/* Product side list panel */}
+              <aside style={{
+                width: '240px',
+                borderRight: '1px solid rgba(219, 187, 160, 0.08)',
+                background: 'rgba(20, 15, 12, 0.2)',
+                padding: '24px 16px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                flexShrink: 0
+              }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto' }}>
+                  <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(244, 239, 234, 0.35)', marginBottom: '12px', paddingLeft: '8px', fontWeight: 700 }}>Catalog Entries</div>
+                  {products.map(p => {
+                    const trans = productTranslations.find(pt => pt.product_id === p.id && pt.lang === 'en');
+                    return (
+                      <button
+                        key={p.id}
+                        onClick={() => {
+                          setIsAddingProduct(false);
+                          setSelectedProductId(p.id);
+                        }}
+                        style={{
+                          width: '100%',
+                          textAlign: 'left',
+                          padding: '10px 12px',
+                          background: (!isAddingProduct && selectedProductId === p.id) ? 'rgba(219, 187, 160, 0.08)' : 'transparent',
+                          border: 'none',
+                          borderRadius: '8px',
+                          color: (!isAddingProduct && selectedProductId === p.id) ? '#D4AF37' : 'rgba(244, 239, 234, 0.75)',
+                          fontSize: '0.85rem',
+                          fontWeight: 500,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '2px',
+                          transition: 'all 0.15s'
+                        }}
+                      >
+                        <span style={{ fontWeight: 600 }}>{trans?.name || p.id}</span>
+                        <span style={{ fontSize: '0.7rem', color: 'rgba(244, 239, 234, 0.4)', fontFamily: 'monospace' }}>{p.id}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => {
+                    setIsAddingProduct(true);
+                    setSelectedProductId(null);
+                    setProductDraft({
+                      id: '',
+                      image_url: '/images/product-bag-nobg.png',
+                      name: '',
+                      category: '',
+                      tagline: '',
+                      description: '',
+                      highlights: [],
+                      specs: [],
+                    });
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    background: 'rgba(219, 187, 160, 0.05)',
+                    border: '1px dashed rgba(219, 187, 160, 0.3)',
+                    borderRadius: '8px',
+                    color: '#D4AF37',
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    marginTop: '16px'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(219, 187, 160, 0.1)'}
+                  onMouseOut={(e) => e.currentTarget.style.background = 'rgba(219, 187, 160, 0.05)'}
+                >
+                  + Add Product
+                </button>
+              </aside>
+
+              {/* Product form editing panel */}
+              <div style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
+                
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '24px',
+                  borderBottom: '1px solid rgba(219, 187, 160, 0.08)',
+                  paddingBottom: '20px'
+                }}>
+                  <div>
+                    <h2 style={{ fontSize: '1.4rem', margin: '0 0 6px 0', fontFamily: 'Georgia', fontWeight: 600 }}>
+                      {isAddingProduct ? 'Create New Product' : `Edit Product parameters: ${selectedProductId}`}
+                    </h2>
+                    <p style={{ fontSize: '0.85rem', color: 'rgba(244, 239, 234, 0.45)', margin: 0 }}>Configure names, attributes, specifications lists, and translations.</p>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'rgba(244, 239, 234, 0.65)', fontWeight: 600 }}>Edit Language:</span>
+                    <select
+                      value={selectedLang}
+                      onChange={(e) => setSelectedLang(e.target.value as LanguageCode)}
+                      style={{
+                        padding: '10px 16px',
+                        background: '#1A130E',
+                        border: '1px solid rgba(219, 187, 160, 0.25)',
+                        borderRadius: '8px',
+                        color: '#F4EFEA',
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                        outline: 'none',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {LANGUAGES.map(l => (
+                        <option key={l.code} value={l.code}>
+                          {l.flag} {l.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '32px' }}>
+                  
+                  {/* Inputs Fields Column */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Product Slug ID (e.g. kaima-rice)
+                      </label>
+                      <input
+                        type="text"
+                        disabled={!isAddingProduct}
+                        value={productDraft.id}
+                        onChange={(e) => setProductDraft(prev => ({ ...prev, id: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))}
+                        placeholder="e.g. premium-kaima"
+                        style={{
+                          width: '100%',
+                          padding: '10px 14px',
+                          background: '#0a0705',
+                          border: '1px solid rgba(219, 187, 160, 0.12)',
+                          borderRadius: '6px',
+                          color: isAddingProduct ? '#F4EFEA' : 'rgba(244, 239, 234, 0.4)',
+                          fontSize: '0.85rem',
+                          outline: 'none'
+                        }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          Product Name
+                        </label>
+                        <input
+                          type="text"
+                          value={productDraft.name}
+                          onChange={(e) => setProductDraft(prev => ({ ...prev, name: e.target.value }))}
+                          placeholder="e.g. Premium Kaima Rice"
                           style={{
                             width: '100%',
-                            padding: '12px 16px',
+                            padding: '10px 14px',
                             background: '#0a0705',
                             border: '1px solid rgba(219, 187, 160, 0.12)',
                             borderRadius: '6px',
                             color: '#F4EFEA',
                             fontSize: '0.85rem',
-                            lineHeight: 1.5,
-                            outline: 'none',
-                            fontFamily: isArray ? 'monospace' : 'inherit',
-                            resize: 'vertical',
-                            transition: 'border-color 0.2s'
+                            outline: 'none'
                           }}
-                          onFocus={(e) => e.target.style.borderColor = 'rgba(219, 187, 160, 0.4)'}
-                          onBlur={(e) => e.target.style.borderColor = 'rgba(219, 187, 160, 0.12)'}
                         />
                       </div>
-                    );
-                  })
-                )}
-              </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          Category Label
+                        </label>
+                        <input
+                          type="text"
+                          value={productDraft.category}
+                          onChange={(e) => setProductDraft(prev => ({ ...prev, category: e.target.value }))}
+                          placeholder="e.g. Aromatic Rice"
+                          style={{
+                            width: '100%',
+                            padding: '10px 14px',
+                            background: '#0a0705',
+                            border: '1px solid rgba(219, 187, 160, 0.12)',
+                            borderRadius: '6px',
+                            color: '#F4EFEA',
+                            fontSize: '0.85rem',
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
+                    </div>
 
-              {/* Bottom Sticky Action Bar */}
-              <div style={{
-                position: 'sticky',
-                bottom: 0,
-                background: '#0F0A07',
-                padding: '24px 0 0 0',
-                marginTop: '32px',
-                borderTop: '1px solid rgba(219, 187, 160, 0.08)',
-                display: 'flex',
-                justifyContent: 'flex-end'
-              }}>
-                <button
-                  onClick={savePageTranslations}
-                  disabled={saving}
-                  style={{
-                    padding: '12px 28px',
-                    background: 'linear-gradient(135deg, #C5A059 0%, #A27B3C 100%)',
-                    border: 'none',
-                    borderRadius: '6px',
-                    color: '#0F0A07',
-                    fontWeight: 700,
-                    cursor: saving ? 'not-allowed' : 'pointer',
-                    fontSize: '0.85rem',
-                    boxShadow: '0 4px 15px rgba(162, 123, 60, 0.2)'
-                  }}
-                >
-                  {saving ? 'Saving...' : 'Save Page Translations'}
-                </button>
-              </div>
-            </main>
-          </>
-        )}
-
-        {/* ─── TAB 2: PRODUCT CRUD MANAGER ───────────────────────────── */}
-        {activeTab === 'products' && (
-          <>
-            {/* Sidebar list */}
-            <aside style={{
-              width: '280px',
-              borderRight: '1px solid rgba(219, 187, 160, 0.08)',
-              background: 'rgba(20, 15, 12, 0.3)',
-              padding: '24px 16px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between'
-            }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto' }}>
-                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(244, 239, 234, 0.4)', marginBottom: '12px', paddingLeft: '8px', fontWeight: 600 }}>Products</div>
-                {products.map(p => {
-                  const details = productTranslations.find(pt => pt.product_id === p.id && pt.lang === 'en');
-                  return (
-                    <button
-                      key={p.id}
-                      onClick={() => {
-                        setIsAddingProduct(false);
-                        setSelectedProductId(p.id);
-                      }}
-                      style={{
-                        width: '100%',
-                        textAlign: 'left',
-                        padding: '10px 12px',
-                        background: (!isAddingProduct && selectedProductId === p.id) ? 'rgba(219, 187, 160, 0.06)' : 'transparent',
-                        border: 'none',
-                        borderRadius: '8px',
-                        color: (!isAddingProduct && selectedProductId === p.id) ? '#D4AF37' : 'rgba(244, 239, 234, 0.7)',
-                        fontSize: '0.85rem',
-                        fontWeight: 500,
-                        cursor: 'pointer',
-                        transition: 'all 0.15s',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '2px'
-                      }}
-                    >
-                      <span style={{ fontWeight: 600 }}>{details?.name || p.id}</span>
-                      <span style={{ fontSize: '0.7rem', color: 'rgba(244, 239, 234, 0.4)' }}>{p.id}</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <button
-                onClick={() => {
-                  setIsAddingProduct(true);
-                  setSelectedProductId(null);
-                  setProductDraft({
-                    id: '',
-                    image_url: '/images/product-bag-nobg.png',
-                    name: '',
-                    category: '',
-                    tagline: '',
-                    description: '',
-                    highlights: [],
-                    specs: [],
-                  });
-                }}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  background: 'rgba(219, 187, 160, 0.05)',
-                  border: '1px dashed rgba(219, 187, 160, 0.3)',
-                  borderRadius: '8px',
-                  color: '#D4AF37',
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  marginTop: '16px'
-                }}
-                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(219, 187, 160, 0.1)'}
-                onMouseOut={(e) => e.currentTarget.style.background = 'rgba(219, 187, 160, 0.05)'}
-              >
-                + Add New Product
-              </button>
-            </aside>
-
-            {/* Main Editing Area */}
-            <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid rgba(219, 187, 160, 0.08)', paddingBottom: '16px' }}>
-                <div>
-                  <h2 style={{ fontSize: '1.4rem', margin: '0 0 4px 0', fontFamily: 'var(--font-display, Georgia)', fontWeight: 600 }}>
-                    {isAddingProduct ? 'Add New Product Catalog Entry' : `Configure Product: ${selectedProductId}`}
-                  </h2>
-                  <p style={{ fontSize: '0.8rem', color: 'rgba(244, 239, 234, 0.4)', margin: 0 }}>Configure images, labels, categories, and technical parameters.</p>
-                </div>
-                
-                {/* Language Selector */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <label style={{ fontSize: '0.8rem', color: 'rgba(244, 239, 234, 0.6)', fontWeight: 600 }}>Language:</label>
-                  <select
-                    value={selectedLang}
-                    onChange={(e) => setSelectedLang(e.target.value as LanguageCode)}
-                    style={{
-                      padding: '8px 16px',
-                      background: '#1A130E',
-                      border: '1px solid rgba(219, 187, 160, 0.2)',
-                      borderRadius: '6px',
-                      color: '#F4EFEA',
-                      fontSize: '0.85rem',
-                      fontWeight: 600,
-                      outline: 'none'
-                    }}
-                  >
-                    {LANGUAGES.map(l => (
-                      <option key={l.code} value={l.code}>
-                        {l.flag} {l.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Form Layout */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '32px' }}>
-                
-                {/* Inputs Column */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  
-                  {/* Slug / Product ID */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Product Slug / ID (e.g. kuruva-rice)
-                    </label>
-                    <input
-                      type="text"
-                      disabled={!isAddingProduct}
-                      value={productDraft.id}
-                      onChange={(e) => setProductDraft(prev => ({ ...prev, id: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))}
-                      style={{
-                        width: '100%',
-                        padding: '10px 14px',
-                        background: '#0a0705',
-                        border: '1px solid rgba(219, 187, 160, 0.12)',
-                        borderRadius: '6px',
-                        color: isAddingProduct ? '#F4EFEA' : 'rgba(244, 239, 234, 0.4)',
-                        fontSize: '0.85rem',
-                        outline: 'none'
-                      }}
-                      placeholder="e.g. premium-matta"
-                    />
-                  </div>
-
-                  {/* Name & Category Row */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        Product Name
+                        Brief Tagline
                       </label>
                       <input
                         type="text"
-                        value={productDraft.name}
-                        onChange={(e) => setProductDraft(prev => ({ ...prev, name: e.target.value }))}
+                        value={productDraft.tagline}
+                        onChange={(e) => setProductDraft(prev => ({ ...prev, tagline: e.target.value }))}
+                        placeholder="The short grain with sweet aroma..."
                         style={{
                           width: '100%',
                           padding: '10px 14px',
@@ -937,17 +1446,18 @@ export default function CMSClient() {
                           fontSize: '0.85rem',
                           outline: 'none'
                         }}
-                        placeholder="e.g. Palakkad Matta Rice"
                       />
                     </div>
+
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        Category
+                        Product Narrative Description
                       </label>
-                      <input
-                        type="text"
-                        value={productDraft.category}
-                        onChange={(e) => setProductDraft(prev => ({ ...prev, category: e.target.value }))}
+                      <textarea
+                        rows={5}
+                        value={productDraft.description}
+                        onChange={(e) => setProductDraft(prev => ({ ...prev, description: e.target.value }))}
+                        placeholder="Full product background story..."
                         style={{
                           width: '100%',
                           padding: '10px 14px',
@@ -956,550 +1466,480 @@ export default function CMSClient() {
                           borderRadius: '6px',
                           color: '#F4EFEA',
                           fontSize: '0.85rem',
-                          outline: 'none'
+                          outline: 'none',
+                          lineHeight: 1.5,
+                          resize: 'vertical'
                         }}
-                        placeholder="e.g. Kerala Heritage"
                       />
                     </div>
-                  </div>
 
-                  {/* Tagline */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Tagline / Brief Description
-                    </label>
-                    <input
-                      type="text"
-                      value={productDraft.tagline}
-                      onChange={(e) => setProductDraft(prev => ({ ...prev, tagline: e.target.value }))}
-                      style={{
-                        width: '100%',
-                        padding: '10px 14px',
-                        background: '#0a0705',
-                        border: '1px solid rgba(219, 187, 160, 0.12)',
-                        borderRadius: '6px',
-                        color: '#F4EFEA',
-                        fontSize: '0.85rem',
-                        outline: 'none'
-                      }}
-                      placeholder="The nutrient-dense red-bran heritage grain."
-                    />
-                  </div>
-
-                  {/* Full Description */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Full Description
-                    </label>
-                    <textarea
-                      rows={5}
-                      value={productDraft.description}
-                      onChange={(e) => setProductDraft(prev => ({ ...prev, description: e.target.value }))}
-                      style={{
-                        width: '100%',
-                        padding: '10px 14px',
-                        background: '#0a0705',
-                        border: '1px solid rgba(219, 187, 160, 0.12)',
-                        borderRadius: '6px',
-                        color: '#F4EFEA',
-                        fontSize: '0.85rem',
-                        outline: 'none',
-                        lineHeight: 1.5,
-                        resize: 'vertical'
-                      }}
-                      placeholder="Detailed product story..."
-                    />
-                  </div>
-
-                  {/* Highlights editor */}
-                  <div style={{
-                    background: 'rgba(255, 255, 255, 0.01)',
-                    border: '1px solid rgba(219, 187, 160, 0.05)',
-                    padding: '20px',
-                    borderRadius: '8px'
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#D4AF37', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Key Highlights</span>
-                      <button
-                        onClick={() => setProductDraft(prev => ({ ...prev, highlights: [...prev.highlights, ''] }))}
-                        style={{
-                          background: 'rgba(219, 187, 160, 0.1)',
-                          border: '1px solid rgba(219, 187, 160, 0.2)',
-                          color: '#D4AF37',
-                          padding: '4px 10px',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                          cursor: 'pointer'
-                        }}
-                      >
-                        + Add Highlight
-                      </button>
-                    </div>
-                    
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {productDraft.highlights.map((h, index) => (
-                        <div key={index} style={{ display: 'flex', gap: '8px' }}>
-                          <input
-                            type="text"
-                            value={h}
-                            onChange={(e) => {
-                              const list = [...productDraft.highlights];
-                              list[index] = e.target.value;
-                              setProductDraft(prev => ({ ...prev, highlights: list }));
-                            }}
-                            style={{
-                              flex: 1,
-                              padding: '8px 12px',
-                              background: '#0a0705',
-                              border: '1px solid rgba(219, 187, 160, 0.12)',
-                              borderRadius: '4px',
-                              color: '#F4EFEA',
-                              fontSize: '0.8rem',
-                              outline: 'none'
-                            }}
-                            placeholder="e.g. High in dietary fiber"
-                          />
-                          <button
-                            onClick={() => {
-                              const list = productDraft.highlights.filter((_, idx) => idx !== index);
-                              setProductDraft(prev => ({ ...prev, highlights: list }));
-                            }}
-                            style={{
-                              background: 'rgba(220, 53, 69, 0.08)',
-                              border: '1px solid rgba(220, 53, 69, 0.2)',
-                              color: '#EA868F',
-                              width: '34px',
-                              borderRadius: '4px',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
-                            }}
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Specifications editor */}
-                  <div style={{
-                    background: 'rgba(255, 255, 255, 0.01)',
-                    border: '1px solid rgba(219, 187, 160, 0.05)',
-                    padding: '20px',
-                    borderRadius: '8px'
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#D4AF37', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Technical Specifications</span>
-                      <button
-                        onClick={() => setProductDraft(prev => ({ ...prev, specs: [...prev.specs, { label: '', value: '' }] }))}
-                        style={{
-                          background: 'rgba(219, 187, 160, 0.1)',
-                          border: '1px solid rgba(219, 187, 160, 0.2)',
-                          color: '#D4AF37',
-                          padding: '4px 10px',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                          cursor: 'pointer'
-                        }}
-                      >
-                        + Add Spec
-                      </button>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {productDraft.specs.map((s, index) => (
-                        <div key={index} style={{ display: 'flex', gap: '8px' }}>
-                          <input
-                            type="text"
-                            value={s.label}
-                            onChange={(e) => {
-                              const list = [...productDraft.specs];
-                              list[index] = { ...list[index], label: e.target.value };
-                              setProductDraft(prev => ({ ...prev, specs: list }));
-                            }}
-                            style={{
-                              flex: 1,
-                              padding: '8px 12px',
-                              background: '#0a0705',
-                              border: '1px solid rgba(219, 187, 160, 0.12)',
-                              borderRadius: '4px',
-                              color: '#F4EFEA',
-                              fontSize: '0.8rem',
-                              outline: 'none'
-                            }}
-                            placeholder="Label (e.g. Moisture)"
-                          />
-                          <input
-                            type="text"
-                            value={s.value}
-                            onChange={(e) => {
-                              const list = [...productDraft.specs];
-                              list[index] = { ...list[index], value: e.target.value };
-                              setProductDraft(prev => ({ ...prev, specs: list }));
-                            }}
-                            style={{
-                              flex: 1,
-                              padding: '8px 12px',
-                              background: '#0a0705',
-                              border: '1px solid rgba(219, 187, 160, 0.12)',
-                              borderRadius: '4px',
-                              color: '#F4EFEA',
-                              fontSize: '0.8rem',
-                              outline: 'none'
-                            }}
-                            placeholder="Value (e.g. Max 13.5%)"
-                          />
-                          <button
-                            onClick={() => {
-                              const list = productDraft.specs.filter((_, idx) => idx !== index);
-                              setProductDraft(prev => ({ ...prev, specs: list }));
-                            }}
-                            style={{
-                              background: 'rgba(220, 53, 69, 0.08)',
-                              border: '1px solid rgba(220, 53, 69, 0.2)',
-                              color: '#EA868F',
-                              width: '34px',
-                              borderRadius: '4px',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
-                            }}
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                </div>
-
-                {/* Media & Action Sidebar Column */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  
-                  {/* Image Preview & Config */}
-                  <div style={{
-                    background: 'rgba(255, 255, 255, 0.01)',
-                    border: '1px solid rgba(219, 187, 160, 0.08)',
-                    borderRadius: '10px',
-                    padding: '20px'
-                  }}>
-                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Product Image
-                    </label>
+                    {/* Highlights array editor */}
                     <div style={{
-                      height: '220px',
-                      background: 'radial-gradient(circle at center, #261D15 0%, #0a0705 100%)',
-                      border: '1px solid rgba(219, 187, 160, 0.1)',
-                      borderRadius: '8px',
-                      marginBottom: '12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      overflow: 'hidden',
-                      position: 'relative'
+                      background: 'rgba(255, 255, 255, 0.01)',
+                      border: '1px solid rgba(219, 187, 160, 0.05)',
+                      padding: '20px',
+                      borderRadius: '8px'
                     }}>
-                      <img
-                        src={productDraft.image_url}
-                        alt="Product bag preview"
-                        style={{
-                          maxHeight: '100%',
-                          maxWidth: '100%',
-                          objectFit: 'contain',
-                          padding: '16px'
-                        }}
-                        onError={(e) => {
-                          e.currentTarget.src = '/images/product-bag-nobg.png';
-                        }}
-                      />
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#D4AF37', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Highlights list</span>
+                        <button
+                          onClick={() => setProductDraft(prev => ({ ...prev, highlights: [...prev.highlights, ''] }))}
+                          style={{
+                            background: 'rgba(219, 187, 160, 0.1)',
+                            border: '1px solid rgba(219, 187, 160, 0.25)',
+                            color: '#D4AF37',
+                            padding: '4px 10px',
+                            borderRadius: '4px',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          + Add Highlight
+                        </button>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {productDraft.highlights.map((h, idx) => (
+                          <div key={idx} style={{ display: 'flex', gap: '8px' }}>
+                            <input
+                              type="text"
+                              value={h}
+                              onChange={(e) => {
+                                const list = [...productDraft.highlights];
+                                list[idx] = e.target.value;
+                                setProductDraft(prev => ({ ...prev, highlights: list }));
+                              }}
+                              placeholder="Key attribute highlight..."
+                              style={{
+                                flex: 1,
+                                padding: '8px 12px',
+                                background: '#0a0705',
+                                border: '1px solid rgba(219, 187, 160, 0.12)',
+                                borderRadius: '4px',
+                                color: '#F4EFEA',
+                                fontSize: '0.8rem',
+                                outline: 'none'
+                              }}
+                            />
+                            <button
+                              onClick={() => {
+                                const list = productDraft.highlights.filter((_, i) => i !== idx);
+                                setProductDraft(prev => ({ ...prev, highlights: list }));
+                              }}
+                              style={{
+                                background: 'rgba(220, 53, 69, 0.08)',
+                                border: '1px solid rgba(220, 53, 69, 0.2)',
+                                color: '#EA868F',
+                                width: '32px',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
-                    <input
-                      type="text"
-                      value={productDraft.image_url}
-                      onChange={(e) => setProductDraft(prev => ({ ...prev, image_url: e.target.value }))}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        background: '#0a0705',
-                        border: '1px solid rgba(219, 187, 160, 0.12)',
-                        borderRadius: '4px',
-                        color: '#F4EFEA',
-                        fontSize: '0.8rem',
-                        outline: 'none',
-                        marginBottom: '12px'
-                      }}
-                      placeholder="Image URL"
-                    />
+                    {/* Specs array editor */}
+                    <div style={{
+                      background: 'rgba(255, 255, 255, 0.01)',
+                      border: '1px solid rgba(219, 187, 160, 0.05)',
+                      padding: '20px',
+                      borderRadius: '8px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#D4AF37', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Parameters Specifications</span>
+                        <button
+                          onClick={() => setProductDraft(prev => ({ ...prev, specs: [...prev.specs, { label: '', value: '' }] }))}
+                          style={{
+                            background: 'rgba(219, 187, 160, 0.1)',
+                            border: '1px solid rgba(219, 187, 160, 0.25)',
+                            color: '#D4AF37',
+                            padding: '4px 10px',
+                            borderRadius: '4px',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          + Add Spec
+                        </button>
+                      </div>
 
-                    {/* Image Upload Input */}
-                    <div style={{ position: 'relative' }}>
-                      <button style={{
-                        width: '100%',
-                        padding: '10px',
-                        background: 'rgba(219, 187, 160, 0.08)',
-                        border: '1px solid rgba(219, 187, 160, 0.2)',
-                        borderRadius: '6px',
-                        color: '#D4AF37',
-                        fontSize: '0.8rem',
-                        fontWeight: 600,
-                        cursor: 'pointer'
-                      }}>
-                        {uploadingFile ? 'Uploading Asset...' : 'Upload Image'}
-                      </button>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        disabled={uploadingFile}
-                        onChange={(e) => uploadFile(e, 'product')}
-                        style={{
-                          position: 'absolute',
-                          inset: 0,
-                          opacity: 0,
-                          cursor: 'pointer'
-                        }}
-                      />
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {productDraft.specs.map((s, idx) => (
+                          <div key={idx} style={{ display: 'flex', gap: '8px' }}>
+                            <input
+                              type="text"
+                              value={s.label}
+                              onChange={(e) => {
+                                const list = [...productDraft.specs];
+                                list[idx] = { ...list[idx], label: e.target.value };
+                                setProductDraft(prev => ({ ...prev, specs: list }));
+                              }}
+                              placeholder="Parameter name..."
+                              style={{
+                                flex: 1,
+                                padding: '8px 12px',
+                                background: '#0a0705',
+                                border: '1px solid rgba(219, 187, 160, 0.12)',
+                                borderRadius: '4px',
+                                color: '#F4EFEA',
+                                fontSize: '0.8rem',
+                                outline: 'none'
+                              }}
+                            />
+                            <input
+                              type="text"
+                              value={s.value}
+                              onChange={(e) => {
+                                const list = [...productDraft.specs];
+                                list[idx] = { ...list[idx], value: e.target.value };
+                                setProductDraft(prev => ({ ...prev, specs: list }));
+                              }}
+                              placeholder="Specification limit/value..."
+                              style={{
+                                flex: 1,
+                                padding: '8px 12px',
+                                background: '#0a0705',
+                                border: '1px solid rgba(219, 187, 160, 0.12)',
+                                borderRadius: '4px',
+                                color: '#F4EFEA',
+                                fontSize: '0.8rem',
+                                outline: 'none'
+                              }}
+                            />
+                            <button
+                              onClick={() => {
+                                const list = productDraft.specs.filter((_, i) => i !== idx);
+                                setProductDraft(prev => ({ ...prev, specs: list }));
+                              }}
+                              style={{
+                                background: 'rgba(220, 53, 69, 0.08)',
+                                border: '1px solid rgba(220, 53, 69, 0.2)',
+                                color: '#EA868F',
+                                width: '32px',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
+
                   </div>
 
-                  {/* Save and Delete Actions */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <button
-                      onClick={saveProduct}
-                      disabled={saving}
-                      style={{
-                        width: '100%',
-                        padding: '12px',
-                        background: 'linear-gradient(135deg, #C5A059 0%, #A27B3C 100%)',
-                        border: 'none',
-                        borderRadius: '6px',
-                        color: '#0F0A07',
-                        fontSize: '0.85rem',
-                        fontWeight: 700,
-                        cursor: saving ? 'not-allowed' : 'pointer',
-                        boxShadow: '0 4px 15px rgba(162, 123, 60, 0.2)'
-                      }}
-                    >
-                      {saving ? 'Saving...' : 'Save Product'}
-                    </button>
+                  {/* Sidebar Media Preview & Save Product */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    
+                    <div style={{
+                      background: 'rgba(255, 255, 255, 0.01)',
+                      border: '1px solid rgba(219, 187, 160, 0.08)',
+                      borderRadius: '10px',
+                      padding: '20px'
+                    }}>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.65)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Product Bag Cover Image
+                      </label>
+                      
+                      <div style={{
+                        height: '200px',
+                        background: 'radial-gradient(circle at center, #261D15 0%, #0a0705 100%)',
+                        border: '1px solid rgba(219, 187, 160, 0.1)',
+                        borderRadius: '8px',
+                        marginBottom: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        overflow: 'hidden'
+                      }}>
+                        <img
+                          src={productDraft.image_url}
+                          alt="Bag cover"
+                          style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', padding: '16px' }}
+                          onError={(e) => {
+                            e.currentTarget.src = '/images/product-bag-nobg.png';
+                          }}
+                        />
+                      </div>
 
-                    {!isAddingProduct && selectedProductId && (
+                      <input
+                        type="text"
+                        value={productDraft.image_url}
+                        onChange={(e) => setProductDraft(prev => ({ ...prev, image_url: e.target.value }))}
+                        placeholder="Image asset public path..."
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          background: '#0a0705',
+                          border: '1px solid rgba(219, 187, 160, 0.12)',
+                          borderRadius: '6px',
+                          color: '#F4EFEA',
+                          fontSize: '0.8rem',
+                          outline: 'none',
+                          marginBottom: '12px'
+                        }}
+                      />
+
+                      <div style={{ position: 'relative' }}>
+                        <button style={{
+                          width: '100%',
+                          padding: '10px',
+                          background: 'rgba(219, 187, 160, 0.08)',
+                          border: '1px solid rgba(219, 187, 160, 0.2)',
+                          borderRadius: '6px',
+                          color: '#D4AF37',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          cursor: 'pointer'
+                        }}>
+                          {uploadingFile ? 'Uploading file...' : 'Upload Image'}
+                        </button>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          disabled={uploadingFile}
+                          onChange={(e) => uploadFile(e, 'product')}
+                          style={{
+                            position: 'absolute',
+                            inset: 0,
+                            opacity: 0,
+                            cursor: 'pointer'
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       <button
-                        onClick={() => deleteProduct(selectedProductId)}
+                        onClick={saveProduct}
                         disabled={saving}
                         style={{
                           width: '100%',
                           padding: '12px',
-                          background: 'transparent',
-                          border: '1px solid rgba(220, 53, 69, 0.3)',
+                          background: 'linear-gradient(135deg, #C5A059 0%, #A27B3C 100%)',
+                          border: 'none',
                           borderRadius: '6px',
-                          color: '#EA868F',
+                          color: '#0F0A07',
+                          fontWeight: 700,
+                          cursor: saving ? 'not-allowed' : 'pointer',
                           fontSize: '0.85rem',
-                          fontWeight: 600,
-                          cursor: saving ? 'not-allowed' : 'pointer'
+                          boxShadow: '0 4px 15px rgba(162, 123, 60, 0.2)'
                         }}
-                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(220, 53, 69, 0.05)'}
-                        onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
                       >
-                        Delete Product
+                        {saving ? 'Saving...' : 'Save Product'}
                       </button>
-                    )}
+
+                      {!isAddingProduct && selectedProductId && (
+                        <button
+                          onClick={() => deleteProduct(selectedProductId)}
+                          disabled={saving}
+                          style={{
+                            width: '100%',
+                            padding: '12px',
+                            background: 'transparent',
+                            border: '1px solid rgba(220, 53, 69, 0.3)',
+                            borderRadius: '6px',
+                            color: '#EA868F',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            cursor: saving ? 'not-allowed' : 'pointer'
+                          }}
+                          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(220, 53, 69, 0.05)'}
+                          onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
+                          Delete Product
+                        </button>
+                      )}
+                    </div>
+
                   </div>
 
                 </div>
 
               </div>
-            </main>
-          </>
-        )}
 
-        {/* ─── TAB 3: BLOG CRUD MANAGER ──────────────────────────────── */}
-        {activeTab === 'blogs' && (
-          <>
-            {/* Sidebar list */}
-            <aside style={{
-              width: '280px',
-              borderRight: '1px solid rgba(219, 187, 160, 0.08)',
-              background: 'rgba(20, 15, 12, 0.3)',
-              padding: '24px 16px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between'
-            }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto' }}>
-                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(244, 239, 234, 0.4)', marginBottom: '12px', paddingLeft: '8px', fontWeight: 600 }}>Articles</div>
-                {blogs.map(b => {
-                  const details = blogTranslations.find(bt => bt.blog_id === b.id && bt.lang === 'en');
-                  return (
-                    <button
-                      key={b.id}
-                      onClick={() => {
-                        setIsAddingBlog(false);
-                        setSelectedBlogId(b.id);
-                      }}
+            </main>
+          )}
+
+          {/* CATALOG 2: BLOG POSTS ARTICLES VIEW */}
+          {activeItem === 'blogs-list' && (
+            <main style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+              
+              {/* Blog side list panel */}
+              <aside style={{
+                width: '240px',
+                borderRight: '1px solid rgba(219, 187, 160, 0.08)',
+                background: 'rgba(20, 15, 12, 0.2)',
+                padding: '24px 16px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                flexShrink: 0
+              }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto' }}>
+                  <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(244, 239, 234, 0.35)', marginBottom: '12px', paddingLeft: '8px', fontWeight: 700 }}>Articles</div>
+                  {blogs.map(b => {
+                    const trans = blogTranslations.find(bt => bt.blog_id === b.id && bt.lang === 'en');
+                    return (
+                      <button
+                        key={b.id}
+                        onClick={() => {
+                          setIsAddingBlog(false);
+                          setSelectedBlogId(b.id);
+                        }}
+                        style={{
+                          width: '100%',
+                          textAlign: 'left',
+                          padding: '10px 12px',
+                          background: (!isAddingBlog && selectedBlogId === b.id) ? 'rgba(219, 187, 160, 0.08)' : 'transparent',
+                          border: 'none',
+                          borderRadius: '8px',
+                          color: (!isAddingBlog && selectedBlogId === b.id) ? '#D4AF37' : 'rgba(244, 239, 234, 0.75)',
+                          fontSize: '0.85rem',
+                          fontWeight: 500,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '2px',
+                          transition: 'all 0.15s'
+                        }}
+                      >
+                        <span style={{ fontWeight: 600 }}>{trans?.title || b.id}</span>
+                        <span style={{ fontSize: '0.7rem', color: 'rgba(244, 239, 234, 0.4)', fontFamily: 'monospace' }}>{b.id}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => {
+                    setIsAddingBlog(true);
+                    setSelectedBlogId(null);
+                    setBlogDraft({
+                      id: '',
+                      image_url: '/images/blog-images.png',
+                      category: 'Heritage',
+                      readTime: '5 min read',
+                      date: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+                      title: '',
+                      excerpt: '',
+                      body: [],
+                    });
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    background: 'rgba(219, 187, 160, 0.05)',
+                    border: '1px dashed rgba(219, 187, 160, 0.3)',
+                    borderRadius: '8px',
+                    color: '#D4AF37',
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    marginTop: '16px'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(219, 187, 160, 0.1)'}
+                  onMouseOut={(e) => e.currentTarget.style.background = 'rgba(219, 187, 160, 0.05)'}
+                >
+                  + Add Article
+                </button>
+              </aside>
+
+              {/* Blog form editing panel */}
+              <div style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
+                
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '24px',
+                  borderBottom: '1px solid rgba(219, 187, 160, 0.08)',
+                  paddingBottom: '20px'
+                }}>
+                  <div>
+                    <h2 style={{ fontSize: '1.4rem', margin: '0 0 6px 0', fontFamily: 'Georgia', fontWeight: 600 }}>
+                      {isAddingBlog ? 'Create New Article' : `Edit Article parameters: ${selectedBlogId}`}
+                    </h2>
+                    <p style={{ fontSize: '0.85rem', color: 'rgba(244, 239, 234, 0.45)', margin: 0 }}>Configure titles, excerpts, body paragraphs lists, and translations.</p>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'rgba(244, 239, 234, 0.65)', fontWeight: 600 }}>Edit Language:</span>
+                    <select
+                      value={selectedLang}
+                      onChange={(e) => setSelectedLang(e.target.value as LanguageCode)}
                       style={{
-                        width: '100%',
-                        textAlign: 'left',
-                        padding: '10px 12px',
-                        background: (!isAddingBlog && selectedBlogId === b.id) ? 'rgba(219, 187, 160, 0.06)' : 'transparent',
-                        border: 'none',
+                        padding: '10px 16px',
+                        background: '#1A130E',
+                        border: '1px solid rgba(219, 187, 160, 0.25)',
                         borderRadius: '8px',
-                        color: (!isAddingBlog && selectedBlogId === b.id) ? '#D4AF37' : 'rgba(244, 239, 234, 0.7)',
+                        color: '#F4EFEA',
                         fontSize: '0.85rem',
-                        fontWeight: 500,
-                        cursor: 'pointer',
-                        transition: 'all 0.15s',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '2px'
+                        fontWeight: 600,
+                        outline: 'none',
+                        cursor: 'pointer'
                       }}
                     >
-                      <span style={{ fontWeight: 600 }}>{details?.title || b.id}</span>
-                      <span style={{ fontSize: '0.7rem', color: 'rgba(244, 239, 234, 0.4)' }}>{b.id}</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <button
-                onClick={() => {
-                  setIsAddingBlog(true);
-                  setSelectedBlogId(null);
-                  setBlogDraft({
-                    id: '',
-                    image_url: '/images/blog-images.png',
-                    category: 'Heritage',
-                    readTime: '5 min read',
-                    date: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-                    title: '',
-                    excerpt: '',
-                    body: [],
-                  });
-                }}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  background: 'rgba(219, 187, 160, 0.05)',
-                  border: '1px dashed rgba(219, 187, 160, 0.3)',
-                  borderRadius: '8px',
-                  color: '#D4AF37',
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  marginTop: '16px'
-                }}
-                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(219, 187, 160, 0.1)'}
-                onMouseOut={(e) => e.currentTarget.style.background = 'rgba(219, 187, 160, 0.05)'}
-              >
-                + Add New Blog
-              </button>
-            </aside>
-
-            {/* Main Editing Area */}
-            <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid rgba(219, 187, 160, 0.08)', paddingBottom: '16px' }}>
-                <div>
-                  <h2 style={{ fontSize: '1.4rem', margin: '0 0 4px 0', fontFamily: 'var(--font-display, Georgia)', fontWeight: 600 }}>
-                    {isAddingBlog ? 'Create New Blog Post' : `Configure Blog: ${selectedBlogId}`}
-                  </h2>
-                  <p style={{ fontSize: '0.8rem', color: 'rgba(244, 239, 234, 0.4)', margin: 0 }}>Configure post title, excerpt, metadata and body paragraphs.</p>
+                      {LANGUAGES.map(l => (
+                        <option key={l.code} value={l.code}>
+                          {l.flag} {l.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                {/* Language Picker */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <label style={{ fontSize: '0.8rem', color: 'rgba(244, 239, 234, 0.6)', fontWeight: 600 }}>Language:</label>
-                  <select
-                    value={selectedLang}
-                    onChange={(e) => setSelectedLang(e.target.value as LanguageCode)}
-                    style={{
-                      padding: '8px 16px',
-                      background: '#1A130E',
-                      border: '1px solid rgba(219, 187, 160, 0.2)',
-                      borderRadius: '6px',
-                      color: '#F4EFEA',
-                      fontSize: '0.85rem',
-                      fontWeight: 600,
-                      outline: 'none'
-                    }}
-                  >
-                    {LANGUAGES.map(l => (
-                      <option key={l.code} value={l.code}>
-                        {l.flag} {l.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Form Layout */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '32px' }}>
-                
-                {/* Inputs Column */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '32px' }}>
                   
-                  {/* Slug / Blog ID */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Blog Slug / ID (e.g. kerala-farming-trends)
-                    </label>
-                    <input
-                      type="text"
-                      disabled={!isAddingBlog}
-                      value={blogDraft.id}
-                      onChange={(e) => setBlogDraft(prev => ({ ...prev, id: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))}
-                      style={{
-                        width: '100%',
-                        padding: '10px 14px',
-                        background: '#0a0705',
-                        border: '1px solid rgba(219, 187, 160, 0.12)',
-                        borderRadius: '6px',
-                        color: isAddingBlog ? '#F4EFEA' : 'rgba(244, 239, 234, 0.4)',
-                        fontSize: '0.85rem',
-                        outline: 'none'
-                      }}
-                      placeholder="e.g. new-heritage-standards"
-                    />
-                  </div>
-
-                  {/* Title */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Article Title
-                    </label>
-                    <input
-                      type="text"
-                      value={blogDraft.title}
-                      onChange={(e) => setBlogDraft(prev => ({ ...prev, title: e.target.value }))}
-                      style={{
-                        width: '100%',
-                        padding: '10px 14px',
-                        background: '#0a0705',
-                        border: '1px solid rgba(219, 187, 160, 0.12)',
-                        borderRadius: '6px',
-                        color: '#F4EFEA',
-                        fontSize: '0.85rem',
-                        outline: 'none'
-                      }}
-                      placeholder="The Farmers Behind Every Arema Grain"
-                    />
-                  </div>
-
-                  {/* Category, readTime, date Row */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+                  {/* Inputs Fields Column */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        Category
+                        Article Slug ID (e.g. kaima-rice-heritage)
                       </label>
                       <input
                         type="text"
-                        value={blogDraft.category}
-                        onChange={(e) => setBlogDraft(prev => ({ ...prev, category: e.target.value }))}
+                        disabled={!isAddingBlog}
+                        value={blogDraft.id}
+                        onChange={(e) => setBlogDraft(prev => ({ ...prev, id: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))}
+                        placeholder="e.g. new-farming-methods"
+                        style={{
+                          width: '100%',
+                          padding: '10px 14px',
+                          background: '#0a0705',
+                          border: '1px solid rgba(219, 187, 160, 0.12)',
+                          borderRadius: '6px',
+                          color: isAddingBlog ? '#F4EFEA' : 'rgba(244, 239, 234, 0.4)',
+                          fontSize: '0.85rem',
+                          outline: 'none'
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Article Title
+                      </label>
+                      <input
+                        type="text"
+                        value={blogDraft.title}
+                        onChange={(e) => setBlogDraft(prev => ({ ...prev, title: e.target.value }))}
+                        placeholder="e.g. The Sustainable Future of Rice..."
                         style={{
                           width: '100%',
                           padding: '10px 14px',
@@ -1510,17 +1950,84 @@ export default function CMSClient() {
                           fontSize: '0.85rem',
                           outline: 'none'
                         }}
-                        placeholder="e.g. Farming"
                       />
                     </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          Category
+                        </label>
+                        <input
+                          type="text"
+                          value={blogDraft.category}
+                          onChange={(e) => setBlogDraft(prev => ({ ...prev, category: e.target.value }))}
+                          placeholder="e.g. Farming"
+                          style={{
+                            width: '100%',
+                            padding: '10px 14px',
+                            background: '#0a0705',
+                            border: '1px solid rgba(219, 187, 160, 0.12)',
+                            borderRadius: '6px',
+                            color: '#F4EFEA',
+                            fontSize: '0.85rem',
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          Read Time
+                        </label>
+                        <input
+                          type="text"
+                          value={blogDraft.readTime}
+                          onChange={(e) => setBlogDraft(prev => ({ ...prev, readTime: e.target.value }))}
+                          placeholder="e.g. 5 min read"
+                          style={{
+                            width: '100%',
+                            padding: '10px 14px',
+                            background: '#0a0705',
+                            border: '1px solid rgba(219, 187, 160, 0.12)',
+                            borderRadius: '6px',
+                            color: '#F4EFEA',
+                            fontSize: '0.85rem',
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          Publication Date
+                        </label>
+                        <input
+                          type="text"
+                          value={blogDraft.date}
+                          onChange={(e) => setBlogDraft(prev => ({ ...prev, date: e.target.value }))}
+                          placeholder="e.g. November 2026"
+                          style={{
+                            width: '100%',
+                            padding: '10px 14px',
+                            background: '#0a0705',
+                            border: '1px solid rgba(219, 187, 160, 0.12)',
+                            borderRadius: '6px',
+                            color: '#F4EFEA',
+                            fontSize: '0.85rem',
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
+                    </div>
+
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        Read Time
+                        Excerpt / Summary
                       </label>
-                      <input
-                        type="text"
-                        value={blogDraft.readTime}
-                        onChange={(e) => setBlogDraft(prev => ({ ...prev, readTime: e.target.value }))}
+                      <textarea
+                        rows={3}
+                        value={blogDraft.excerpt}
+                        onChange={(e) => setBlogDraft(prev => ({ ...prev, excerpt: e.target.value }))}
+                        placeholder="Brief summary snippet..."
                         style={{
                           width: '100%',
                           padding: '10px 14px',
@@ -1529,486 +2036,240 @@ export default function CMSClient() {
                           borderRadius: '6px',
                           color: '#F4EFEA',
                           fontSize: '0.85rem',
-                          outline: 'none'
+                          outline: 'none',
+                          lineHeight: 1.5,
+                          resize: 'vertical'
                         }}
-                        placeholder="e.g. 5 min read"
                       />
                     </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        Publication Date
-                      </label>
-                      <input
-                        type="text"
-                        value={blogDraft.date}
-                        onChange={(e) => setBlogDraft(prev => ({ ...prev, date: e.target.value }))}
-                        style={{
-                          width: '100%',
-                          padding: '10px 14px',
-                          background: '#0a0705',
-                          border: '1px solid rgba(219, 187, 160, 0.12)',
-                          borderRadius: '6px',
-                          color: '#F4EFEA',
-                          fontSize: '0.85rem',
-                          outline: 'none'
-                        }}
-                        placeholder="e.g. June 2026"
-                      />
-                    </div>
-                  </div>
 
-                  {/* Excerpt */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Excerpt / Summary
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={blogDraft.excerpt}
-                      onChange={(e) => setBlogDraft(prev => ({ ...prev, excerpt: e.target.value }))}
-                      style={{
-                        width: '100%',
-                        padding: '10px 14px',
-                        background: '#0a0705',
-                        border: '1px solid rgba(219, 187, 160, 0.12)',
-                        borderRadius: '6px',
-                        color: '#F4EFEA',
-                        fontSize: '0.85rem',
-                        outline: 'none',
-                        lineHeight: 1.5,
-                        resize: 'vertical'
-                      }}
-                      placeholder="Brief article introduction..."
-                    />
-                  </div>
-
-                  {/* Body paragraphs list */}
-                  <div style={{
-                    background: 'rgba(255, 255, 255, 0.01)',
-                    border: '1px solid rgba(219, 187, 160, 0.05)',
-                    padding: '20px',
-                    borderRadius: '8px'
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#D4AF37', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Body Paragraphs</span>
-                      <button
-                        onClick={() => setBlogDraft(prev => ({ ...prev, body: [...prev.body, ''] }))}
-                        style={{
-                          background: 'rgba(219, 187, 160, 0.1)',
-                          border: '1px solid rgba(219, 187, 160, 0.2)',
-                          color: '#D4AF37',
-                          padding: '4px 10px',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                          cursor: 'pointer'
-                        }}
-                      >
-                        + Add Paragraph
-                      </button>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {blogDraft.body.map((para, index) => (
-                        <div key={index} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                          <span style={{
-                            width: '24px',
-                            height: '24px',
-                            background: 'rgba(219, 187, 160, 0.06)',
-                            border: '1px solid rgba(219, 187, 160, 0.1)',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
+                    {/* Paragraph list array editor */}
+                    <div style={{
+                      background: 'rgba(255, 255, 255, 0.01)',
+                      border: '1px solid rgba(219, 187, 160, 0.05)',
+                      padding: '20px',
+                      borderRadius: '8px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#D4AF37', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Body Paragraphs</span>
+                        <button
+                          onClick={() => setBlogDraft(prev => ({ ...prev, body: [...prev.body, ''] }))}
+                          style={{
+                            background: 'rgba(219, 187, 160, 0.1)',
+                            border: '1px solid rgba(219, 187, 160, 0.25)',
+                            color: '#D4AF37',
+                            padding: '4px 10px',
+                            borderRadius: '4px',
                             fontSize: '0.75rem',
-                            color: 'rgba(244, 239, 234, 0.5)',
-                            marginTop: '8px',
-                            flexShrink: 0
-                          }}>{index + 1}</span>
-                          <textarea
-                            rows={4}
-                            value={para}
-                            onChange={(e) => {
-                              const list = [...blogDraft.body];
-                              list[index] = e.target.value;
-                              setBlogDraft(prev => ({ ...prev, body: list }));
-                            }}
-                            style={{
-                              flex: 1,
-                              padding: '10px 14px',
-                              background: '#0a0705',
-                              border: '1px solid rgba(219, 187, 160, 0.12)',
-                              borderRadius: '6px',
-                              color: '#F4EFEA',
-                              fontSize: '0.85rem',
-                              outline: 'none',
-                              lineHeight: 1.5,
-                              resize: 'vertical'
-                            }}
-                            placeholder="Paragraph content..."
-                          />
-                          <button
-                            onClick={() => {
-                              const list = blogDraft.body.filter((_, idx) => idx !== index);
-                              setBlogDraft(prev => ({ ...prev, body: list }));
-                            }}
-                            style={{
-                              background: 'rgba(220, 53, 69, 0.08)',
-                              border: '1px solid rgba(220, 53, 69, 0.2)',
-                              color: '#EA868F',
-                              width: '34px',
-                              height: '34px',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          + Add Paragraph
+                        </button>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {blogDraft.body.map((para, idx) => (
+                          <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                            <span style={{
+                              width: '24px',
+                              height: '24px',
+                              background: 'rgba(219, 187, 160, 0.06)',
+                              border: '1px solid rgba(219, 187, 160, 0.1)',
+                              borderRadius: '50%',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              marginTop: '4px',
+                              fontSize: '0.75rem',
+                              color: 'rgba(244, 239, 234, 0.5)',
+                              marginTop: '8px',
                               flexShrink: 0
-                            }}
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
+                            }}>{idx + 1}</span>
+                            <textarea
+                              rows={4}
+                              value={para}
+                              onChange={(e) => {
+                                const list = [...blogDraft.body];
+                                list[idx] = e.target.value;
+                                setBlogDraft(prev => ({ ...prev, body: list }));
+                              }}
+                              placeholder="Type paragraph text content..."
+                              style={{
+                                flex: 1,
+                                padding: '10px 14px',
+                                background: '#0a0705',
+                                border: '1px solid rgba(219, 187, 160, 0.12)',
+                                borderRadius: '6px',
+                                color: '#F4EFEA',
+                                fontSize: '0.85rem',
+                                outline: 'none',
+                                lineHeight: 1.5,
+                                resize: 'vertical'
+                              }}
+                            />
+                            <button
+                              onClick={() => {
+                                const list = blogDraft.body.filter((_, i) => i !== idx);
+                                setBlogDraft(prev => ({ ...prev, body: list }));
+                              }}
+                              style={{
+                                background: 'rgba(220, 53, 69, 0.08)',
+                                border: '1px solid rgba(220, 53, 69, 0.2)',
+                                color: '#EA868F',
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                marginTop: '4px'
+                              }}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
+
                   </div>
 
-                </div>
-
-                {/* Media & Action Sidebar Column */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  
-                  {/* Image preview & upload */}
-                  <div style={{
-                    background: 'rgba(255, 255, 255, 0.01)',
-                    border: '1px solid rgba(219, 187, 160, 0.08)',
-                    borderRadius: '10px',
-                    padding: '20px'
-                  }}>
-                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Article Cover Image
-                    </label>
+                  {/* Sidebar Cover Image preview & actions */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    
                     <div style={{
-                      height: '180px',
-                      background: 'rgba(0,0,0,0.2)',
-                      border: '1px solid rgba(219, 187, 160, 0.1)',
-                      borderRadius: '8px',
-                      marginBottom: '12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      overflow: 'hidden',
-                      position: 'relative'
+                      background: 'rgba(255, 255, 255, 0.01)',
+                      border: '1px solid rgba(219, 187, 160, 0.08)',
+                      borderRadius: '10px',
+                      padding: '20px'
                     }}>
-                      <img
-                        src={blogDraft.image_url}
-                        alt="Blog cover preview"
-                        style={{
-                          height: '100%',
-                          width: '100%',
-                          objectFit: 'cover'
-                        }}
-                        onError={(e) => {
-                          e.currentTarget.src = '/images/blog-images.png';
-                        }}
-                      />
-                    </div>
-
-                    <input
-                      type="text"
-                      value={blogDraft.image_url}
-                      onChange={(e) => setBlogDraft(prev => ({ ...prev, image_url: e.target.value }))}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        background: '#0a0705',
-                        border: '1px solid rgba(219, 187, 160, 0.12)',
-                        borderRadius: '4px',
-                        color: '#F4EFEA',
-                        fontSize: '0.8rem',
-                        outline: 'none',
-                        marginBottom: '12px'
-                      }}
-                      placeholder="Image URL"
-                    />
-
-                    {/* Image Upload Input */}
-                    <div style={{ position: 'relative' }}>
-                      <button style={{
-                        width: '100%',
-                        padding: '10px',
-                        background: 'rgba(219, 187, 160, 0.08)',
-                        border: '1px solid rgba(219, 187, 160, 0.2)',
-                        borderRadius: '6px',
-                        color: '#D4AF37',
-                        fontSize: '0.8rem',
-                        fontWeight: 600,
-                        cursor: 'pointer'
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.65)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Cover Visual Image
+                      </label>
+                      
+                      <div style={{
+                        height: '160px',
+                        background: 'rgba(0,0,0,0.3)',
+                        border: '1px solid rgba(219, 187, 160, 0.1)',
+                        borderRadius: '8px',
+                        marginBottom: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        overflow: 'hidden'
                       }}>
-                        {uploadingFile ? 'Uploading Asset...' : 'Upload Image'}
-                      </button>
+                        <img
+                          src={blogDraft.image_url}
+                          alt="Cover view"
+                          style={{ height: '100%', width: '100%', objectFit: 'cover' }}
+                          onError={(e) => {
+                            e.currentTarget.src = '/images/blog-images.png';
+                          }}
+                        />
+                      </div>
+
                       <input
-                        type="file"
-                        accept="image/*"
-                        disabled={uploadingFile}
-                        onChange={(e) => uploadFile(e, 'blog')}
+                        type="text"
+                        value={blogDraft.image_url}
+                        onChange={(e) => setBlogDraft(prev => ({ ...prev, image_url: e.target.value }))}
+                        placeholder="Image asset public path..."
                         style={{
-                          position: 'absolute',
-                          inset: 0,
-                          opacity: 0,
-                          cursor: 'pointer'
+                          width: '100%',
+                          padding: '8px 12px',
+                          background: '#0a0705',
+                          border: '1px solid rgba(219, 187, 160, 0.12)',
+                          borderRadius: '6px',
+                          color: '#F4EFEA',
+                          fontSize: '0.8rem',
+                          outline: 'none',
+                          marginBottom: '12px'
                         }}
                       />
+
+                      <div style={{ position: 'relative' }}>
+                        <button style={{
+                          width: '100%',
+                          padding: '10px',
+                          background: 'rgba(219, 187, 160, 0.08)',
+                          border: '1px solid rgba(219, 187, 160, 0.2)',
+                          borderRadius: '6px',
+                          color: '#D4AF37',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          cursor: 'pointer'
+                        }}>
+                          {uploadingFile ? 'Uploading file...' : 'Upload Image'}
+                        </button>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          disabled={uploadingFile}
+                          onChange={(e) => uploadFile(e, 'blog')}
+                          style={{
+                            position: 'absolute',
+                            inset: 0,
+                            opacity: 0,
+                            cursor: 'pointer'
+                          }}
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Save and Delete Actions */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <button
-                      onClick={saveBlog}
-                      disabled={saving}
-                      style={{
-                        width: '100%',
-                        padding: '12px',
-                        background: 'linear-gradient(135deg, #C5A059 0%, #A27B3C 100%)',
-                        border: 'none',
-                        borderRadius: '6px',
-                        color: '#0F0A07',
-                        fontSize: '0.85rem',
-                        fontWeight: 700,
-                        cursor: saving ? 'not-allowed' : 'pointer',
-                        boxShadow: '0 4px 15px rgba(162, 123, 60, 0.2)'
-                      }}
-                    >
-                      {saving ? 'Saving...' : 'Save Blog Post'}
-                    </button>
-
-                    {!isAddingBlog && selectedBlogId && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       <button
-                        onClick={() => deleteBlog(selectedBlogId)}
+                        onClick={saveBlog}
                         disabled={saving}
                         style={{
                           width: '100%',
                           padding: '12px',
-                          background: 'transparent',
-                          border: '1px solid rgba(220, 53, 69, 0.3)',
+                          background: 'linear-gradient(135deg, #C5A059 0%, #A27B3C 100%)',
+                          border: 'none',
                           borderRadius: '6px',
-                          color: '#EA868F',
+                          color: '#0F0A07',
+                          fontWeight: 700,
+                          cursor: saving ? 'not-allowed' : 'pointer',
                           fontSize: '0.85rem',
-                          fontWeight: 600,
-                          cursor: saving ? 'not-allowed' : 'pointer'
+                          boxShadow: '0 4px 15px rgba(162, 123, 60, 0.2)'
                         }}
-                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(220, 53, 69, 0.05)'}
-                        onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
                       >
-                        Delete Article
+                        {saving ? 'Saving...' : 'Save Article'}
                       </button>
-                    )}
+
+                      {!isAddingBlog && selectedBlogId && (
+                        <button
+                          onClick={() => deleteBlog(selectedBlogId)}
+                          disabled={saving}
+                          style={{
+                            width: '100%',
+                            padding: '12px',
+                            background: 'transparent',
+                            border: '1px solid rgba(220, 53, 69, 0.3)',
+                            borderRadius: '6px',
+                            color: '#EA868F',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            cursor: saving ? 'not-allowed' : 'pointer'
+                          }}
+                          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(220, 53, 69, 0.05)'}
+                          onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
+                          Delete Article
+                        </button>
+                      )}
+                    </div>
+
                   </div>
 
                 </div>
 
               </div>
+
             </main>
-          </>
-        )}
+          )}
 
-        {/* ─── TAB 4: MEDIA & OVERRIDES SETTINGS ─────────────────────── */}
-        {activeTab === 'media' && (
-          <main style={{ flex: 1, padding: '32px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '32px' }}>
-            <div>
-              <h2 style={{ fontSize: '1.4rem', margin: '0 0 4px 0', fontFamily: 'var(--font-display, Georgia)', fontWeight: 600 }}>Media & Global Variable Configurations</h2>
-              <p style={{ fontSize: '0.8rem', color: 'rgba(244, 239, 234, 0.4)', margin: 0 }}>Configure dynamic logo replacements, WhatsApp phone links, background videos, or upload general website assets.</p>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px', alignItems: 'start' }}>
-              
-              {/* Left Column: Overrides Form & Upload */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                
-                {/* Upload Section */}
-                <div style={{
-                  background: 'rgba(255, 255, 255, 0.01)',
-                  border: '1px solid rgba(219, 187, 160, 0.08)',
-                  borderRadius: '12px',
-                  padding: '24px'
-                }}>
-                  <h3 style={{ fontSize: '1rem', color: '#D4AF37', margin: '0 0 8px 0', fontWeight: 600 }}>Upload Media Asset</h3>
-                  <p style={{ fontSize: '0.8rem', color: 'rgba(244, 239, 234, 0.4)', margin: '0 0 16px 0' }}>Upload image or video files directly to Supabase storage to generate dynamic URLs.</p>
-                  
-                  <div style={{
-                    border: '1px dashed rgba(219, 187, 160, 0.2)',
-                    padding: '28px',
-                    borderRadius: '8px',
-                    textAlign: 'center',
-                    background: 'rgba(0,0,0,0.1)',
-                    position: 'relative'
-                  }}>
-                    <span style={{ fontSize: '0.85rem', color: 'rgba(244, 239, 234, 0.5)', display: 'block', marginBottom: '8px' }}>
-                      Drag and drop file here, or click to choose
-                    </span>
-                    <button style={{
-                      padding: '8px 16px',
-                      background: 'rgba(219, 187, 160, 0.1)',
-                      border: '1px solid rgba(219, 187, 160, 0.25)',
-                      borderRadius: '6px',
-                      color: '#D4AF37',
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
-                      cursor: 'pointer'
-                    }}>
-                      {uploadingFile ? 'Uploading file...' : 'Choose File'}
-                    </button>
-                    <input
-                      type="file"
-                      disabled={uploadingFile}
-                      onChange={(e) => uploadFile(e, 'global')}
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        opacity: 0,
-                        cursor: 'pointer'
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Upsert Overrides Form */}
-                <div style={{
-                  background: 'rgba(255, 255, 255, 0.01)',
-                  border: '1px solid rgba(219, 187, 160, 0.08)',
-                  borderRadius: '12px',
-                  padding: '24px'
-                }}>
-                  <h3 style={{ fontSize: '1rem', color: '#D4AF37', margin: '0 0 8px 0', fontWeight: 600 }}>Create / Edit Override</h3>
-                  <p style={{ fontSize: '0.8rem', color: 'rgba(244, 239, 234, 0.4)', margin: '0 0 20px 0' }}>Assign a value or media URL to a global key to override static settings.</p>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        Override Key (e.g. logo, whatsapp_number, founder_video)
-                      </label>
-                      <input
-                        type="text"
-                        value={overrideDraft.key}
-                        onChange={(e) => setOverrideDraft(prev => ({ ...prev, key: e.target.value.trim() }))}
-                        style={{
-                          width: '100%',
-                          padding: '10px 14px',
-                          background: '#0a0705',
-                          border: '1px solid rgba(219, 187, 160, 0.12)',
-                          borderRadius: '6px',
-                          color: '#F4EFEA',
-                          fontSize: '0.85rem',
-                          outline: 'none'
-                        }}
-                        placeholder="e.g. whatsapp_number"
-                      />
-                    </div>
-
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(244, 239, 234, 0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        Override Value / URL
-                      </label>
-                      <input
-                        type="text"
-                        value={overrideDraft.url}
-                        onChange={(e) => setOverrideDraft(prev => ({ ...prev, url: e.target.value }))}
-                        style={{
-                          width: '100%',
-                          padding: '10px 14px',
-                          background: '#0a0705',
-                          border: '1px solid rgba(219, 187, 160, 0.12)',
-                          borderRadius: '6px',
-                          color: '#F4EFEA',
-                          fontSize: '0.85rem',
-                          outline: 'none'
-                        }}
-                        placeholder="e.g. 9778339292 or http://..."
-                      />
-                    </div>
-
-                    <button
-                      onClick={saveImageOverride}
-                      disabled={saving}
-                      style={{
-                        padding: '12px',
-                        background: 'linear-gradient(135deg, #C5A059 0%, #A27B3C 100%)',
-                        border: 'none',
-                        borderRadius: '6px',
-                        color: '#0F0A07',
-                        fontSize: '0.85rem',
-                        fontWeight: 700,
-                        cursor: saving ? 'not-allowed' : 'pointer',
-                        marginTop: '8px'
-                      }}
-                    >
-                      {saving ? 'Saving...' : 'Set Override'}
-                    </button>
-                  </div>
-                </div>
-
-              </div>
-
-              {/* Right Column: Existing Settings List */}
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.01)',
-                border: '1px solid rgba(219, 187, 160, 0.08)',
-                borderRadius: '12px',
-                padding: '24px'
-              }}>
-                <h3 style={{ fontSize: '1rem', color: '#D4AF37', margin: '0 0 16px 0', fontWeight: 600 }}>Active Image & Global Settings Overrides</h3>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {imageOverrides.length === 0 ? (
-                    <div style={{ textAlign: 'center', color: 'rgba(244, 239, 234, 0.3)', padding: '24px 0' }}>No variables overridden in database.</div>
-                  ) : (
-                    imageOverrides.map(img => (
-                      <div key={img.key} style={{
-                        background: '#0a0705',
-                        border: '1px solid rgba(219, 187, 160, 0.06)',
-                        padding: '16px',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '8px'
-                      }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#D4AF37', fontFamily: 'monospace' }}>{img.key}</span>
-                          <button
-                            onClick={() => deleteImageOverride(img.key)}
-                            style={{
-                              background: 'transparent',
-                              border: 'none',
-                              color: '#EA868F',
-                              fontSize: '0.85rem',
-                              cursor: 'pointer',
-                              fontWeight: 600
-                            }}
-                          >
-                            Remove
-                          </button>
-                        </div>
-                        <div style={{
-                          fontSize: '0.75rem',
-                          color: 'rgba(244, 239, 234, 0.5)',
-                          wordBreak: 'break-all',
-                          background: 'rgba(255,255,255,0.02)',
-                          padding: '6px 10px',
-                          borderRadius: '4px'
-                        }}>
-                          {img.url}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-
-            </div>
-          </main>
-        )}
+        </div>
 
       </div>
     </div>

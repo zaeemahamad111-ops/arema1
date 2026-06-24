@@ -245,6 +245,15 @@ export interface TranslationSchema {
     excerpt: string;
     body: string[];
   }>;
+  seo?: {
+    home: { title: string; description: string; keywords: string };
+    ourStory: { title: string; description: string; keywords: string };
+    whyArema: { title: string; description: string; keywords: string };
+    certificates: { title: string; description: string; keywords: string };
+    blog: { title: string; description: string; keywords: string };
+    contact: { title: string; description: string; keywords: string };
+    products: { title: string; description: string; keywords: string };
+  };
 }
 
 export const LANGUAGES = [

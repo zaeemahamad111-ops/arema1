@@ -493,5 +493,42 @@ export const en: TranslationSchema = {
         'It is one of the oldest techniques in rice processing. It is also one of the smartest.'
       ]
     }
+  },
+  seo: {
+    home: {
+      title: 'Arema Foods International — Premium Kerala Rice Exporters',
+      description: 'Arema Foods International exports the finest rice from the fertile fields of Palakkad, Kerala to global markets. Heritage grains, international standards.',
+      keywords: 'Kerala rice export, Palakkad Matta rice, premium rice, India food export, Arema Foods'
+    },
+    ourStory: {
+      title: 'Our Story — Arema Foods International',
+      description: 'Discover the roots of Arema Foods, our farming lineage in Palakkad, and our commitment to bringing authentic Kerala grains to tables worldwide.',
+      keywords: 'about Arema, rice history, Kerala farming, rice source'
+    },
+    whyArema: {
+      title: 'Why Choose Arema — Arema Foods International',
+      description: 'Understand the key quality pillars of Arema Foods International, our standards of trust, healthy processing, and original grains.',
+      keywords: 'why Arema, rice quality, organic standard, natural processing'
+    },
+    certificates: {
+      title: 'Our Certifications — Arema Foods International',
+      description: 'Verify our food quality, export compliance, FSSAI registry, and international export certifications.',
+      keywords: 'FSSAI cert, APEDA registry, export certificates, food standards'
+    },
+    blog: {
+      title: 'Field Notes Blog — Arema Foods International',
+      description: 'Articles and stories from the Palakkad delta, highlighting traditional farming methods and modern global trade updates.',
+      keywords: 'rice blog, farming news, rice export updates, food processing'
+    },
+    contact: {
+      title: 'Get in Touch — Arema Foods International',
+      description: 'Connect with our sales and distribution team for wholesale orders, private labeling, and custom export packaging options.',
+      keywords: 'contact Arema, wholesale rice, rice distribution, private label rice'
+    },
+    products: {
+      title: 'Our Product Catalog — Arema Foods International',
+      description: 'Browse our selection of premium Palakkad Matta, Kuruva, Jeerakasala, and other aromatic specialty grains.',
+      keywords: 'matta rice catalog, kuruva rice wholesale, jeerakasala export'
+    }
   }
 };
