@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import styles from './page.module.css';
+import CertificatesGallery from './CertificatesGallery';
 
 export const metadata: Metadata = {
   title: 'Certificates — Arema Foods International',
@@ -8,9 +8,6 @@ export const metadata: Metadata = {
 };
 
 export default function CertificatesPage() {
-  // We have 16 pages from page_0 to page_15
-  const certificates = Array.from({ length: 16 }).map((_, i) => `/images/certificates/page_${i}.png`);
-
   return (
     <main style={{ paddingTop: 'var(--nav-height)' }}>
       {/* ── HEADER ───────────────────────────────────── */}
@@ -31,22 +28,7 @@ export default function CertificatesPage() {
       {/* ── GALLERY ───────────────────────────────────── */}
       <section className={styles.gallerySection}>
         <div className="container">
-          <div className={styles.grid}>
-            {certificates.map((src, index) => (
-              <div key={src} className={styles.card}>
-                <div className={styles.imageWrap}>
-                  <Image
-                    src={src}
-                    alt={`Arema Certification Document ${index + 1}`}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    style={{ objectFit: 'contain' }}
-                  />
-                </div>
-                <div className={styles.cardLabel}>Document {index + 1}</div>
-              </div>
-            ))}
-          </div>
+          <CertificatesGallery />
         </div>
       </section>
     </main>
