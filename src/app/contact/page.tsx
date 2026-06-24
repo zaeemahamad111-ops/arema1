@@ -80,18 +80,6 @@ export default function ContactPage() {
                 <p className="body-sm">9:00 AM – 6:00 PM IST</p>
               </div>
 
-              {/* Google Map */}
-              <div className={styles.mapPlaceholder} style={{ padding: 0, overflow: 'hidden' }}>
-                <iframe
-                  src="https://maps.google.com/maps?q=GAYATHRI+EXIM+RICE+MILL,+Vadavannur,+po,+Kollengode,+Kerala+678504&t=&z=13&ie=UTF8&iwloc=&output=embed"
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0, minHeight: '300px' }}
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                ></iframe>
-              </div>
             </div>
 
             {/* Form */}
@@ -206,6 +194,19 @@ export default function ContactPage() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* ── FULL WIDTH MAP ───────────────────────────── */}
+      <section style={{ width: '100%', height: '550px' }}>
+        <iframe
+          src="https://maps.google.com/maps?q=Arema+Foods+International,+27/665,+1st+floor,+Das+complex,+Near+Builtech+Pavilion,+NH-47,+Bypass+Kadamkode,+Palakkad,+Kerala&t=&z=14&ie=UTF8&iwloc=&output=embed"
+          width="100%"
+          height="100%"
+          style={{ border: 0 }}
+          allowFullScreen
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+        ></iframe>
       </section>
     </main>
   );
