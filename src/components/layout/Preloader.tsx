@@ -10,15 +10,16 @@ export default function Preloader() {
   const pathname = usePathname();
   const [active, setActive] = useState(false);
 
-  if (pathname?.startsWith('/cms')) {
-    return null;
-  }
+  // All hooks MUST be declared before any conditional returns (React rules of hooks)
   const containerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
   const hasRun = useRef(false);
 
   useEffect(() => {
+    // Skip entirely on CMS routes
+    if (pathname?.startsWith('/cms')) return;
+
     // Guard: only run once (prevents React StrictMode double-invoke issues)
     if (hasRun.current) return;
 
@@ -39,6 +40,7 @@ export default function Preloader() {
 
     const tl = gsap.timeline({
       onComplete: () => {
+        if (!containerRef.current) return;
         gsap.to(containerRef.current, {
           yPercent: -100,
           duration: 0.8,
@@ -53,17 +55,20 @@ export default function Preloader() {
       },
     });
 
-    // 1. Fade in logo
-    tl.to(logoRef.current, { opacity: 1, duration: 0.6, ease: 'power2.out' });
+    // Only animate if refs are mounted
+    if (logoRef.current) {
+      tl.to(logoRef.current, { opacity: 1, duration: 0.6, ease: 'power2.out' });
+    }
+    if (progressRef.current) {
+      tl.to(progressRef.current, { width: '100%', duration: 1.4, ease: 'power2.inOut' }, '-=0.3');
+    }
+    if (logoRef.current) {
+      tl.to(logoRef.current, { scale: 0.96, opacity: 0, duration: 0.35, ease: 'power2.in' }, '+=0.1');
+    }
+  }, [pathname]);
 
-    // 2. Fill progress bar
-    tl.to(progressRef.current, { width: '100%', duration: 1.4, ease: 'power2.inOut' }, '-=0.3');
-
-    // 3. Fade out logo before slide-up
-    tl.to(logoRef.current, { scale: 0.96, opacity: 0, duration: 0.35, ease: 'power2.in' }, '+=0.1');
-  }, []);
-
-  if (!active) return null;
+  // Don't render on CMS routes or when not active
+  if (pathname?.startsWith('/cms') || !active) return null;
 
   return (
     <div ref={containerRef} className={styles.preloaderContainer}>

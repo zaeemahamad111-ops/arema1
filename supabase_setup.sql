@@ -77,3 +77,22 @@ create policy "Allow all for everyone" on blog_translations for all using (true)
 alter table image_overrides enable row level security;
 create policy "Allow public read" on image_overrides for select using (true);
 create policy "Allow all for everyone" on image_overrides for all using (true);
+
+-- 5. Storage configuration for cms-media bucket
+insert into storage.buckets (id, name, public)
+values ('cms-media', 'cms-media', true)
+on conflict (id) do nothing;
+
+-- Storage object policies
+create policy "Allow public select on cms-media" on storage.objects
+  for select using (bucket_id = 'cms-media');
+
+create policy "Allow public insert on cms-media" on storage.objects
+  for insert with check (bucket_id = 'cms-media');
+
+create policy "Allow public update on cms-media" on storage.objects
+  for update with check (bucket_id = 'cms-media');
+
+create policy "Allow public delete on cms-media" on storage.objects
+  for delete using (bucket_id = 'cms-media');
+

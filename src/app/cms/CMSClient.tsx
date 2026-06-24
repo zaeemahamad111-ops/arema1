@@ -5,70 +5,94 @@ import { supabase } from '@/lib/supabase';
 import { en } from '@/i18n/locales/en';
 import { LANGUAGES, LanguageCode } from '@/i18n/translations';
 
-// Strict visual order of keys page-by-page as they appear in the website
-const ALL_KEYS_ORDER = [
-  // Navigation
-  'nav.home', 'nav.ourStory', 'nav.products', 'nav.whyArema', 'nav.certificates', 'nav.blog', 'nav.contact', 'nav.menu', 'nav.close', 'nav.getInTouch',
-  // Footer
-  'footer.tagline', 'footer.navigate', 'footer.products', 'footer.contact', 'footer.mattaRice', 'footer.whiteRice', 'footer.aromaticRice', 'footer.valueAdded', 'footer.rights', 'footer.privacy', 'footer.terms',
-  
-  // Home Page
-  'hero.scrubText1', 'hero.scrubText2', 'hero.scrubText3', 'hero.scrollCue',
-  'founder.eyebrow', 'founder.heading', 'founder.description', 'founder.conceptDescription',
-  'globalReach.eyebrow', 'globalReach.heading', 'globalReach.body', 'globalReach.cta', 'globalReach.countries', 'globalReach.certified', 'globalReach.direct', 'globalReach.packaging',
-  'whyArema.eyebrow', 'whyArema.heading', 'whyArema.pillars',
-  'products.eyebrow', 'products.heading', 'products.body', 'products.viewDetails', 'products.viewMore',
-  'palakkad.eyebrow', 'palakkad.heading', 'palakkad.advantages',
-  'blog.eyebrow', 'blog.heading', 'blog.viewAll', 'blog.readMore',
-  'cta.heading', 'cta.btnPrimary', 'cta.btnSecondary',
-  
-  // Our Story Page
-  'ourStoryPage.heroLabel', 'ourStoryPage.heroHeadline', 'ourStoryPage.heroHeadlineEm', 'ourStoryPage.heroDesc', 'ourStoryPage.heroScroll',
-  'ourStoryPage.aboutUs', 'ourStoryPage.statementLead', 'ourStoryPage.statementLeadEm', 'ourStoryPage.statementText1', 'ourStoryPage.statementText2',
-  'ourStoryPage.badgeGI', 'ourStoryPage.badgeFSSAI', 'ourStoryPage.badgeAPEDA', 'ourStoryPage.badgeTraceable',
-  'ourStoryPage.founderEyebrow', 'ourStoryPage.founderHeading', 'ourStoryPage.founderHeadingEm', 'ourStoryPage.founderTitle', 'ourStoryPage.founderDegree', 'ourStoryPage.founderPara1', 'ourStoryPage.founderPara2', 'ourStoryPage.founderPara3', 'ourStoryPage.founderQuote',
-  'ourStoryPage.founderBadgeFounded', 'ourStoryPage.founderBadgeCertified', 'ourStoryPage.founderBadgeAPEDA',
-  'ourStoryPage.stripCap1', 'ourStoryPage.stripCap2', 'ourStoryPage.stripCap3',
-  'ourStoryPage.visionMissionTitle', 'ourStoryPage.visionMissionTitleEm', 'ourStoryPage.visionMissionNote',
-  'ourStoryPage.visionTitle', 'ourStoryPage.visionHeading', 'ourStoryPage.visionBody',
-  'ourStoryPage.missionTitle', 'ourStoryPage.missionHeading', 'ourStoryPage.missionBody', 'ourStoryPage.missionHighlight',
-  'ourStoryPage.fieldQuote', 'ourStoryPage.fieldQuoteAttr',
-  'ourStoryPage.beliefsTitle', 'ourStoryPage.beliefsHeading', 'ourStoryPage.beliefsHeadingEm', 'ourStoryPage.beliefs',
-  'ourStoryPage.stat1Label', 'ourStoryPage.stat1Desc', 'ourStoryPage.stat2Label', 'ourStoryPage.stat2Desc', 'ourStoryPage.stat3Label', 'ourStoryPage.stat3Desc', 'ourStoryPage.stat4Label', 'ourStoryPage.stat4Desc',
-  'ourStoryPage.reachLabel', 'ourStoryPage.reachTitle', 'ourStoryPage.reachTitleEm', 'ourStoryPage.reachBody',
-  'ourStoryPage.route1Code', 'ourStoryPage.route1Region', 'ourStoryPage.route1Ports',
-  'ourStoryPage.route2Code', 'ourStoryPage.route2Region', 'ourStoryPage.route2Ports',
-  'ourStoryPage.route3Code', 'ourStoryPage.route3Region', 'ourStoryPage.route3Ports',
-  'ourStoryPage.routeStatus',
-  'ourStoryPage.closingQuote', 'ourStoryPage.closingAttr', 'ourStoryPage.closingCta',
+// Sidebar navigation item config
+interface SidebarItem {
+  id: string;
+  name: string;
+  type: 'page' | 'products' | 'blogs';
+  group: 'sections' | 'catalogs';
+  prefixes?: string[];
+  seoKey?: string;
+}
 
-  // Why Choose Arema Page
-  'whyAremaPage.heroLabel', 'whyAremaPage.heroTitle', 'whyAremaPage.heroTitleEm', 'whyAremaPage.heroDesc',
-  'whyAremaPage.valuesLabel', 'whyAremaPage.valuesHeading', 'whyAremaPage.valuesHeadingEm', 'whyAremaPage.pillars',
-  'whyAremaPage.featureTitle', 'whyAremaPage.featureTitleEm', 'whyAremaPage.featureBody', 'whyAremaPage.featureList',
+// Combined visual flow of texts and media overrides per section
+interface MediaConfig {
+  mediaKey: string;
+  label: string;
+  mediaType: 'image' | 'video' | 'text';
+}
 
-  // Products Page
-  'productsPage.heroLabel', 'productsPage.heroTitle', 'productsPage.heroSubtitle', 'productsPage.viewSpecs',
-  'productDetail.keyChars', 'productDetail.specTitle', 'productDetail.wholesaleTitle', 'productDetail.wholesaleDesc', 'productDetail.btnEnquiry', 'productDetail.exploreOther', 'productDetail.allProducts', 'productDetail.scrollDiscover',
-
-  // Certificates Page
-  'certsPage.eyebrow', 'certsPage.heading', 'certsPage.headingEm', 'certsPage.desc', 'certsPage.viewDoc', 'certsPage.docName',
-
-  // Blog Page
-  'blogPage.eyebrow', 'blogPage.title', 'blogPage.titleEm', 'blogPage.articlesCount', 'blogPage.filter', 'blogPage.featuredLabel', 'blogPage.readArticle', 'blogPage.moreStories', 'blogPage.newsletterEyebrow', 'blogPage.newsletterTitle', 'blogPage.newsletterBody', 'blogPage.newsletterPlaceholder', 'blogPage.newsletterSubmit', 'blogPage.privacyNote', 'blogPage.backToBlog',
-
-  // Contact Page
-  'contactPage.heroLabel', 'contactPage.heroTitle', 'contactPage.heroTitleEm', 'contactPage.heroDesc',
-  'contactPage.address', 'contactPage.contact', 'contactPage.exportInq', 'contactPage.hoursTitle', 'contactPage.hoursDays', 'contactPage.hoursTime',
-  'contactPage.successTitle', 'contactPage.successBody', 'contactPage.formName', 'contactPage.formCompany', 'contactPage.formEmail', 'contactPage.formPhone', 'contactPage.formInquiryType', 'contactPage.formInquiryWholesale', 'contactPage.formInquiryPartner', 'contactPage.formInquiryLabel', 'contactPage.formInquiryRetail', 'contactPage.formInquiryMedia', 'contactPage.formInquiryOther', 'contactPage.formMessage', 'contactPage.formMessagePlaceholder', 'contactPage.formSubmit',
-];
+const PAGE_FLOWS: Record<string, (string | MediaConfig)[]> = {
+  general: [
+    { mediaKey: 'logo', label: 'Website Logo Image', mediaType: 'image' },
+    'nav.home', 'nav.ourStory', 'nav.products', 'nav.whyArema', 'nav.certificates', 'nav.blog', 'nav.contact',
+    'footer.tagline', 'footer.navigate', 'footer.products', 'footer.contact', 'footer.mattaRice', 'footer.whiteRice', 'footer.aromaticRice', 'footer.valueAdded', 'footer.rights', 'footer.privacy', 'footer.terms',
+    { mediaKey: 'whatsapp_number', label: 'WhatsApp Call Link Number (e.g. 9778339292)', mediaType: 'text' }
+  ],
+  home: [
+    'hero.scrubText1', 'hero.scrubText2', 'hero.scrubText3', 'hero.scrollCue',
+    'founder.eyebrow', 'founder.heading', 'founder.description', 'founder.conceptDescription',
+    { mediaKey: 'founder_video', label: 'Founder Story Background Video (MP4)', mediaType: 'video' },
+    'globalReach.eyebrow', 'globalReach.heading', 'globalReach.body', 'globalReach.cta', 'globalReach.countries', 'globalReach.certified', 'globalReach.direct', 'globalReach.packaging',
+    'whyArema.eyebrow', 'whyArema.heading', 'whyArema.pillars',
+    'products.eyebrow', 'products.heading', 'products.body', 'products.viewDetails', 'products.viewMore',
+    'palakkad.eyebrow', 'palakkad.heading', 'palakkad.advantages',
+    'blog.eyebrow', 'blog.heading', 'blog.viewAll', 'blog.readMore',
+    'cta.heading', 'cta.btnPrimary', 'cta.btnSecondary'
+  ],
+  'our-story': [
+    { mediaKey: 'ourstory_hero', label: 'Hero Background Banner Image', mediaType: 'image' },
+    'ourStoryPage.heroLabel', 'ourStoryPage.heroHeadline', 'ourStoryPage.heroHeadlineEm', 'ourStoryPage.heroDesc', 'ourStoryPage.heroScroll',
+    'ourStoryPage.aboutUs', 'ourStoryPage.statementLead', 'ourStoryPage.statementLeadEm', 'ourStoryPage.statementText1', 'ourStoryPage.statementText2',
+    'ourStoryPage.badgeGI', 'ourStoryPage.badgeFSSAI', 'ourStoryPage.badgeAPEDA', 'ourStoryPage.badgeTraceable',
+    'ourStoryPage.founderEyebrow', 'ourStoryPage.founderHeading', 'ourStoryPage.founderHeadingEm', 'ourStoryPage.founderTitle', 'ourStoryPage.founderDegree',
+    { mediaKey: 'ourstory_founder', label: 'Founder Portrait Image', mediaType: 'image' },
+    'ourStoryPage.founderPara1', 'ourStoryPage.founderPara2', 'ourStoryPage.founderPara3', 'ourStoryPage.founderQuote', 'ourStoryPage.founderBadgeFounded', 'ourStoryPage.founderBadgeCertified', 'ourStoryPage.founderBadgeAPEDA',
+    'ourStoryPage.stripCap1', 'ourStoryPage.stripCap2', 'ourStoryPage.stripCap3',
+    'ourStoryPage.visionMissionTitle', 'ourStoryPage.visionMissionTitleEm', 'ourStoryPage.visionMissionNote',
+    'ourStoryPage.visionTitle', 'ourStoryPage.visionHeading', 'ourStoryPage.visionBody',
+    'ourStoryPage.missionTitle', 'ourStoryPage.missionHeading', 'ourStoryPage.missionBody', 'ourStoryPage.missionHighlight',
+    'ourStoryPage.fieldQuote', 'ourStoryPage.fieldQuoteAttr',
+    { mediaKey: 'ourstory_quote_bg', label: 'Quote Highlight Background Banner', mediaType: 'image' },
+    'ourStoryPage.beliefsTitle', 'ourStoryPage.beliefsHeading', 'ourStoryPage.beliefsHeadingEm', 'ourStoryPage.beliefs',
+    'ourStoryPage.stat1Label', 'ourStoryPage.stat1Desc', 'ourStoryPage.stat2Label', 'ourStoryPage.stat2Desc', 'ourStoryPage.stat3Label', 'ourStoryPage.stat3Desc', 'ourStoryPage.stat4Label', 'ourStoryPage.stat4Desc',
+    'ourStoryPage.reachLabel', 'ourStoryPage.reachTitle', 'ourStoryPage.reachTitleEm', 'ourStoryPage.reachBody',
+    'ourStoryPage.route1Code', 'ourStoryPage.route1Region', 'ourStoryPage.route1Ports',
+    'ourStoryPage.route2Code', 'ourStoryPage.route2Region', 'ourStoryPage.route2Ports',
+    'ourStoryPage.route3Code', 'ourStoryPage.route3Region', 'ourStoryPage.route3Ports',
+    'ourStoryPage.routeStatus',
+    'ourStoryPage.closingQuote', 'ourStoryPage.closingAttr', 'ourStoryPage.closingCta'
+  ],
+  'why-arema': [
+    'whyAremaPage.heroLabel', 'whyAremaPage.heroTitle', 'whyAremaPage.heroTitleEm', 'whyAremaPage.heroDesc',
+    { mediaKey: 'whyarema_strip', label: 'Paddy Fields Accent Strip Image', mediaType: 'image' },
+    'whyAremaPage.valuesLabel', 'whyAremaPage.valuesHeading', 'whyAremaPage.valuesHeadingEm', 'whyAremaPage.pillars',
+    'whyAremaPage.featureTitle', 'whyAremaPage.featureTitleEm', 'whyAremaPage.featureBody', 'whyAremaPage.featureList',
+    { mediaKey: 'whyarema_split', label: 'Features Split Visual Banner Image', mediaType: 'image' }
+  ],
+  'products-catalog': [
+    'productsPage.heroLabel', 'productsPage.heroTitle', 'productsPage.heroSubtitle', 'productsPage.viewSpecs',
+    'productDetail.keyChars', 'productDetail.specTitle', 'productDetail.wholesaleTitle', 'productDetail.wholesaleDesc', 'productDetail.btnEnquiry', 'productDetail.exploreOther', 'productDetail.allProducts', 'productDetail.scrollDiscover'
+  ],
+  certs: [
+    'certsPage.eyebrow', 'certsPage.heading', 'certsPage.headingEm', 'certsPage.desc', 'certsPage.viewDoc', 'certsPage.docName'
+  ],
+  'blog-page': [
+    'blogPage.eyebrow', 'blogPage.title', 'blogPage.titleEm', 'blogPage.articlesCount', 'blogPage.filter', 'blogPage.featuredLabel', 'blogPage.readArticle', 'blogPage.moreStories', 'blogPage.newsletterEyebrow', 'blogPage.newsletterTitle', 'blogPage.newsletterBody', 'blogPage.newsletterPlaceholder', 'blogPage.newsletterSubmit', 'blogPage.privacyNote', 'blogPage.backToBlog'
+  ],
+  contact: [
+    'contactPage.heroLabel', 'contactPage.heroTitle', 'contactPage.heroTitleEm', 'contactPage.heroDesc',
+    'contactPage.address', 'contactPage.contact', 'contactPage.exportInq', 'contactPage.hoursTitle', 'contactPage.hoursDays', 'contactPage.hoursTime',
+    'contactPage.successTitle', 'contactPage.successBody', 'contactPage.formName', 'contactPage.formCompany', 'contactPage.formEmail', 'contactPage.formPhone', 'contactPage.formInquiryType', 'contactPage.formInquiryWholesale', 'contactPage.formInquiryPartner', 'contactPage.formInquiryLabel', 'contactPage.formInquiryRetail', 'contactPage.formInquiryMedia', 'contactPage.formInquiryOther', 'contactPage.formMessage', 'contactPage.formMessagePlaceholder', 'contactPage.formSubmit'
+  ]
+};
 
 // Helper to flatten nested object
 function flattenObject(obj: any, prefix = ''): Record<string, string> {
   const results: Record<string, string> = {};
   for (const k in obj) {
     if (prefix === '' && (k === 'productsData' || k === 'blogData' || k === 'seo')) {
-      continue; // Skip raw data structures to handle them specifically
+      continue; // Skip raw data structures to handle specifically
     }
     const key = prefix ? `${prefix}.${k}` : k;
     const val = obj[k];
@@ -83,112 +107,9 @@ function flattenObject(obj: any, prefix = ''): Record<string, string> {
   return results;
 }
 
-// Sidebar Navigation config
-interface SidebarItem {
-  id: string;
-  name: string;
-  type: 'page' | 'products' | 'blogs';
-  group: 'sections' | 'catalogs';
-  prefixes?: string[];
-  seoKey?: string;
-  mediaKeys?: { key: string; label: string; type: 'image' | 'video' | 'text' }[];
-}
-
-const SIDEBAR_ITEMS: SidebarItem[] = [
-  {
-    id: 'general',
-    name: 'General Settings',
-    type: 'page',
-    group: 'sections',
-    prefixes: ['nav.', 'footer.'],
-    mediaKeys: [
-      { key: 'logo', label: 'Website Logo Image', type: 'image' },
-      { key: 'whatsapp_number', label: 'WhatsApp Call Link Number', type: 'text' },
-      { key: 'founder_video', label: 'Founder Story Background Video', type: 'video' }
-    ]
-  },
-  {
-    id: 'home',
-    name: 'Home Page',
-    type: 'page',
-    group: 'sections',
-    prefixes: ['hero.', 'founder.', 'globalReach.', 'whyArema.', 'products.', 'palakkad.', 'blog.', 'cta.'],
-    seoKey: 'home'
-  },
-  {
-    id: 'our-story',
-    name: 'Our Story Page',
-    type: 'page',
-    group: 'sections',
-    prefixes: ['ourStoryPage.'],
-    seoKey: 'ourStory',
-    mediaKeys: [
-      { key: 'ourstory_hero', label: 'Hero Background Banner', type: 'image' },
-      { key: 'ourstory_founder', label: 'Founder Portrait Image', type: 'image' },
-      { key: 'ourstory_quote_bg', label: 'Quote Highlight Background', type: 'image' }
-    ]
-  },
-  {
-    id: 'why-arema',
-    name: 'Why Choose Arema',
-    type: 'page',
-    group: 'sections',
-    prefixes: ['whyAremaPage.'],
-    seoKey: 'whyArema',
-    mediaKeys: [
-      { key: 'whyarema_strip', label: 'Paddy Fields Highlight Strip', type: 'image' },
-      { key: 'whyarema_split', label: 'Features Split Visual Banner', type: 'image' }
-    ]
-  },
-  {
-    id: 'products-catalog',
-    name: 'Products Page Text',
-    type: 'page',
-    group: 'sections',
-    prefixes: ['productsPage.', 'productDetail.'],
-    seoKey: 'products'
-  },
-  {
-    id: 'certs',
-    name: 'Certificates Page',
-    type: 'page',
-    group: 'sections',
-    prefixes: ['certsPage.'],
-    seoKey: 'certificates'
-  },
-  {
-    id: 'blog-page',
-    name: 'Blog Catalog Page',
-    type: 'page',
-    group: 'sections',
-    prefixes: ['blogPage.'],
-    seoKey: 'blog'
-  },
-  {
-    id: 'contact',
-    name: 'Contact Page',
-    type: 'page',
-    group: 'sections',
-    prefixes: ['contactPage.'],
-    seoKey: 'contact'
-  },
-  {
-    id: 'products-list',
-    name: 'Product Catalog Entries',
-    type: 'products',
-    group: 'catalogs'
-  },
-  {
-    id: 'blogs-list',
-    name: 'Blog Articles Manager',
-    type: 'blogs',
-    group: 'catalogs'
-  }
-];
-
 export default function CMSClient() {
   const [activeItem, setActiveItem] = useState<string>('general');
-  const [activeSubTab, setActiveSubTab] = useState<'texts' | 'seo' | 'media'>('texts');
+  const [activeSubTab, setActiveSubTab] = useState<'content' | 'seo'>('content');
   const [selectedLang, setSelectedLang] = useState<LanguageCode>('en');
 
   // Supabase states
@@ -294,7 +215,7 @@ export default function CMSClient() {
     // 1. Text overrides keys matching page prefixes
     if (activeConfig.prefixes) {
       Object.keys(flatEn).forEach(key => {
-        const matches = activeConfig.prefixes!.some(pfx => key.startsWith(pfx));
+        const matches = activeConfig.prefixes!.some((pfx: string) => key.startsWith(pfx));
         if (matches) {
           const match = siteTranslations.find(t => t.key === key && t.lang === selectedLang);
           draft[key] = match ? match.value : '';
@@ -323,9 +244,7 @@ export default function CMSClient() {
     const config = SIDEBAR_ITEMS.find(item => item.id === activeItem);
     if (config?.type === 'page') {
       if (activeSubTab === 'seo' && !config.seoKey) {
-        setActiveSubTab('texts');
-      } else if (activeSubTab === 'media' && !config.mediaKeys) {
-        setActiveSubTab('texts');
+        setActiveSubTab('content');
       }
     }
   }, [activeItem]);
@@ -374,7 +293,7 @@ export default function CMSClient() {
     setStatusMessage({ text, error });
     setTimeout(() => {
       setStatusMessage(null);
-    }, 4000);
+    }, 4500);
   };
 
   const handleLogout = async () => {
@@ -396,7 +315,7 @@ export default function CMSClient() {
         }));
 
       if (updates.length === 0) {
-        showStatus('No new translations to save.');
+        showStatus('No translations to save.');
         setSaving(false);
         return;
       }
@@ -404,7 +323,7 @@ export default function CMSClient() {
       const { error } = await supabase.from('site_translations').upsert(updates, { onConflict: 'key,lang' });
       if (error) throw error;
 
-      showStatus('Page updates and SEO metadata saved successfully!');
+      showStatus('Updates saved successfully!');
       
       const { data: trans } = await supabase.from('site_translations').select('*');
       if (trans) setSiteTranslations(trans);
@@ -452,7 +371,7 @@ export default function CMSClient() {
   };
 
   const deleteProduct = async (id: string) => {
-    if (!confirm(`Permanently delete product "${id}" and all its multi-lingual details?`)) return;
+    if (!confirm(`Permanently delete product "${id}"?`)) return;
     setSaving(true);
     try {
       const { error } = await supabase.from('products').delete().eq('id', id);
@@ -535,7 +454,9 @@ export default function CMSClient() {
         .from('cms-media')
         .upload(filePath, file, { cacheControl: '3600', upsert: true });
 
-      if (uploadErr) throw uploadErr;
+      if (uploadErr) {
+        throw new Error(`${uploadErr.message}. If bucket is missing, run SQL editor storage setups.`);
+      }
 
       const { data } = supabase.storage.from('cms-media').getPublicUrl(filePath);
       const publicUrl = data.publicUrl;
@@ -555,11 +476,11 @@ export default function CMSClient() {
 
         if (overrideErr) throw overrideErr;
 
-        showStatus(`Media asset for key "${target}" updated successfully!`);
+        showStatus(`Media asset for key "${target}" updated!`);
         await fetchData();
       }
     } catch (err: any) {
-      showStatus(`File upload failed: ${err.message}`, true);
+      showStatus(`Upload failed: ${err.message}. Ensure bucket exists and has correct insert permissions.`, true);
     } finally {
       setUploadingFile(false);
     }
@@ -627,18 +548,6 @@ export default function CMSClient() {
   }
 
   const activeConfig = SIDEBAR_ITEMS.find(item => item.id === activeItem);
-
-  // Sorting keys based on visual sequence order
-  const sortKeysInOrder = (keys: string[]) => {
-    return [...keys].sort((a, b) => {
-      const idxA = ALL_KEYS_ORDER.indexOf(a);
-      const idxB = ALL_KEYS_ORDER.indexOf(b);
-      if (idxA === -1 && idxB === -1) return a.localeCompare(b);
-      if (idxA === -1) return 1;
-      if (idxB === -1) return -1;
-      return idxA - idxB;
-    });
-  };
 
   return (
     <div style={{
@@ -819,7 +728,7 @@ export default function CMSClient() {
                     {activeConfig.name}
                   </h2>
                   <p style={{ fontSize: '0.85rem', color: 'rgba(46, 37, 30, 0.55)', margin: 0 }}>
-                    Manage translations, custom SEO, and media assets overrides.
+                    Manage combined page content details and media overrides in sequence.
                   </p>
                 </div>
 
@@ -849,16 +758,16 @@ export default function CMSClient() {
                 </div>
               </div>
 
-              {/* Sub Navigation Tabs for the Page (Texts / SEO / Media) */}
+              {/* Sub Navigation Tabs for the Page (Content & Media / SEO) */}
               <div style={{ display: 'flex', gap: '8px', marginBottom: '32px', borderBottom: '1px solid rgba(162, 123, 60, 0.1)', paddingBottom: '8px' }}>
                 <button
-                  onClick={() => setActiveSubTab('texts')}
+                  onClick={() => setActiveSubTab('content')}
                   style={{
                     padding: '8px 20px',
                     background: 'transparent',
                     border: 'none',
-                    borderBottom: activeSubTab === 'texts' ? '2px solid #A27B3C' : '2px solid transparent',
-                    color: activeSubTab === 'texts' ? '#A27B3C' : 'rgba(46, 37, 30, 0.6)',
+                    borderBottom: activeSubTab === 'content' ? '2px solid #A27B3C' : '2px solid transparent',
+                    color: activeSubTab === 'content' ? '#A27B3C' : 'rgba(46, 37, 30, 0.6)',
                     fontSize: '0.9rem',
                     fontWeight: 600,
                     cursor: 'pointer',
@@ -866,7 +775,7 @@ export default function CMSClient() {
                     outline: 'none'
                   }}
                 >
-                  Text Content
+                  Content & Media
                 </button>
 
                 {activeConfig.seoKey && (
@@ -888,97 +797,186 @@ export default function CMSClient() {
                     SEO Tags
                   </button>
                 )}
-
-                {activeConfig.mediaKeys && (
-                  <button
-                    onClick={() => setActiveSubTab('media')}
-                    style={{
-                      padding: '8px 20px',
-                      background: 'transparent',
-                      border: 'none',
-                      borderBottom: activeSubTab === 'media' ? '2px solid #A27B3C' : '2px solid transparent',
-                      color: activeSubTab === 'media' ? '#A27B3C' : 'rgba(46, 37, 30, 0.6)',
-                      fontSize: '0.9rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      outline: 'none'
-                    }}
-                  >
-                    Media & Overrides
-                  </button>
-                )}
               </div>
 
-              {/* TAB 1: Standard Text Fields */}
-              {activeSubTab === 'texts' && (
+              {/* TAB 1: Combined Content & Media inline Flow */}
+              {activeSubTab === 'content' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', flex: 1 }}>
-                  {sortKeysInOrder(
-                    Object.keys(draftTranslations).filter(key => !key.startsWith('seo.'))
-                  ).map(key => {
-                    const baselineValue = flattenObject(en)[key] || '';
-                    const isArray = baselineValue.startsWith('[') || baselineValue.startsWith('{');
+                  {PAGE_FLOWS[activeItem]?.map((item, index) => {
+                    
+                    // CASE A: It's a text key
+                    if (typeof item === 'string') {
+                      const key = item;
+                      const baselineValue = flattenObject(en)[key] || '';
+                      const isArray = baselineValue.startsWith('[') || baselineValue.startsWith('{');
+
+                      return (
+                        <div key={key} style={{
+                          background: '#FFFFFF',
+                          border: '1px solid rgba(162, 123, 60, 0.08)',
+                          padding: '24px',
+                          borderRadius: '12px',
+                          boxShadow: '0 2px 8px rgba(162, 123, 60, 0.03)'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#A27B3C', fontFamily: 'monospace' }}>{key}</span>
+                            {isArray && (
+                              <span style={{
+                                fontSize: '0.65rem',
+                                background: 'rgba(162, 123, 60, 0.08)',
+                                color: '#A27B3C',
+                                padding: '2px 8px',
+                                borderRadius: '4px',
+                                fontWeight: 700
+                              }}>JSON Array</span>
+                            )}
+                          </div>
+
+                          <div style={{
+                            fontSize: '0.85rem',
+                            background: '#F9F6F2',
+                            padding: '12px 16px',
+                            borderRadius: '8px',
+                            color: 'rgba(46, 37, 30, 0.7)',
+                            marginBottom: '14px',
+                            borderLeft: '3px solid #C5A059',
+                            lineHeight: 1.5
+                          }}>
+                            <strong>English baseline:</strong> {baselineValue}
+                          </div>
+
+                          <textarea
+                            rows={isArray ? 5 : 2}
+                            value={draftTranslations[key] || ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setDraftTranslations(prev => ({ ...prev, [key]: val }));
+                            }}
+                            placeholder={isArray ? '[ "Item 1", "Item 2" ]' : `Enter translation...`}
+                            style={{
+                              width: '100%',
+                              padding: '14px 18px',
+                              background: '#FFFFFF',
+                              border: '1px solid rgba(162, 123, 60, 0.2)',
+                              borderRadius: '8px',
+                              color: '#2E251E',
+                              fontSize: '0.9rem',
+                              lineHeight: 1.5,
+                              outline: 'none',
+                              fontFamily: isArray ? 'monospace' : 'inherit',
+                              resize: 'vertical',
+                              transition: 'all 0.2s'
+                            }}
+                            onFocus={(e) => e.target.style.borderColor = '#A27B3C'}
+                            onBlur={(e) => e.target.style.borderColor = 'rgba(162, 123, 60, 0.2)'}
+                          />
+                        </div>
+                      );
+                    }
+
+                    // CASE B: It's a media override key
+                    const media = item as MediaConfig;
+                    const dbOverride = imageOverrides.find(o => o.key === media.mediaKey);
+                    const currentVal = dbOverride ? dbOverride.url : '';
 
                     return (
-                      <div key={key} style={{
+                      <div key={media.mediaKey} style={{
                         background: '#FFFFFF',
-                        border: '1px solid rgba(162, 123, 60, 0.08)',
+                        border: '2px dashed rgba(162, 123, 60, 0.15)',
                         padding: '24px',
                         borderRadius: '12px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px',
                         boxShadow: '0 2px 8px rgba(162, 123, 60, 0.03)'
                       }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#A27B3C', fontFamily: 'monospace' }}>{key}</span>
-                          {isArray && (
-                            <span style={{
-                              fontSize: '0.65rem',
-                              background: 'rgba(162, 123, 60, 0.08)',
-                              color: '#A27B3C',
-                              padding: '2px 8px',
-                              borderRadius: '4px',
-                              fontWeight: 700
-                            }}>JSON Array</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.95rem', fontWeight: 700, color: '#A27B3C' }}>
+                            🖼️ {media.label}
+                          </span>
+                          <span style={{ fontSize: '0.7rem', color: 'rgba(46, 37, 30, 0.4)', fontFamily: 'monospace' }}>
+                            media_override key: {media.mediaKey}
+                          </span>
+                        </div>
+
+                        {/* Preview */}
+                        {currentVal && media.mediaType === 'image' && (
+                          <div style={{ height: '180px', background: '#F9F6F2', border: '1px solid rgba(162, 123, 60, 0.1)', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <img src={currentVal} alt="Dynamic Media Override" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                          </div>
+                        )}
+
+                        {currentVal && media.mediaType === 'video' && (
+                          <div style={{ height: '180px', background: '#F9F6F2', border: '1px solid rgba(162, 123, 60, 0.1)', borderRadius: '8px', overflow: 'hidden' }}>
+                            <video src={currentVal} controls muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          </div>
+                        )}
+
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <input
+                            type="text"
+                            defaultValue={currentVal}
+                            onBlur={(e) => handleManualUrlSave(media.mediaKey, e.target.value)}
+                            placeholder={media.mediaType === 'text' ? 'Provide phone or value override...' : 'Or paste a public asset link URL directly...'}
+                            style={{
+                              flex: 1,
+                              padding: '10px 14px',
+                              background: '#FFFFFF',
+                              border: '1px solid rgba(162, 123, 60, 0.2)',
+                              borderRadius: '6px',
+                              color: '#2E251E',
+                              fontSize: '0.85rem',
+                              outline: 'none'
+                            }}
+                          />
+                          {currentVal && (
+                            <button
+                              onClick={() => removeMediaOverride(media.mediaKey)}
+                              style={{
+                                padding: '8px 14px',
+                                background: 'rgba(220, 53, 69, 0.05)',
+                                border: '1px solid rgba(220, 53, 69, 0.25)',
+                                color: '#DC3545',
+                                borderRadius: '6px',
+                                fontSize: '0.85rem',
+                                cursor: 'pointer',
+                                fontWeight: 600
+                              }}
+                            >
+                              Reset
+                            </button>
                           )}
                         </div>
 
-                        <div style={{
-                          fontSize: '0.85rem',
-                          background: '#F9F6F2',
-                          padding: '12px 16px',
-                          borderRadius: '8px',
-                          color: 'rgba(46, 37, 30, 0.7)',
-                          marginBottom: '14px',
-                          borderLeft: '3px solid #C5A059',
-                          lineHeight: 1.5
-                        }}>
-                          <strong>English baseline:</strong> {baselineValue}
-                        </div>
-
-                        <textarea
-                          rows={isArray ? 5 : 2}
-                          value={draftTranslations[key] || ''}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setDraftTranslations(prev => ({ ...prev, [key]: val }));
-                          }}
-                          placeholder={isArray ? '[ "Item 1", "Item 2" ]' : `Enter ${LANGUAGES.find(l => l.code === selectedLang)?.name} translation...`}
-                          style={{
-                            width: '100%',
-                            padding: '14px 18px',
-                            background: '#FFFFFF',
-                            border: '1px solid rgba(162, 123, 60, 0.2)',
-                            borderRadius: '8px',
-                            color: '#2E251E',
-                            fontSize: '0.9rem',
-                            lineHeight: 1.5,
-                            outline: 'none',
-                            fontFamily: isArray ? 'monospace' : 'inherit',
-                            resize: 'vertical',
-                            transition: 'all 0.2s'
-                          }}
-                          onFocus={(e) => e.target.style.borderColor = '#A27B3C'}
-                          onBlur={(e) => e.target.style.borderColor = 'rgba(162, 123, 60, 0.2)'}
-                        />
+                        {media.mediaType !== 'text' && (
+                          <div style={{ position: 'relative' }}>
+                            <button style={{
+                              width: '100%',
+                              padding: '10px',
+                              background: 'rgba(162, 123, 60, 0.06)',
+                              border: '1px solid rgba(162, 123, 60, 0.15)',
+                              borderRadius: '6px',
+                              color: '#A27B3C',
+                              fontSize: '0.8rem',
+                              fontWeight: 600,
+                              cursor: 'pointer'
+                            }}>
+                              {uploadingFile ? 'Uploading file...' : `Upload New ${media.mediaType === 'video' ? 'Video File' : 'Image File'}`}
+                            </button>
+                            <input
+                              type="file"
+                              accept={media.mediaType === 'video' ? 'video/*' : 'image/*'}
+                              disabled={uploadingFile}
+                              onChange={(e) => uploadFile(e, media.mediaKey)}
+                              style={{
+                                position: 'absolute',
+                                inset: 0,
+                                opacity: 0,
+                                cursor: 'pointer'
+                              }}
+                            />
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -1009,7 +1007,7 @@ export default function CMSClient() {
                         transition: 'opacity 0.2s'
                       }}
                     >
-                      {saving ? 'Saving...' : 'Save Text Content'}
+                      {saving ? 'Saving...' : 'Save Page Content'}
                     </button>
                   </div>
                 </div>
@@ -1139,137 +1137,6 @@ export default function CMSClient() {
                       {saving ? 'Saving...' : 'Save SEO Tags'}
                     </button>
                   </div>
-                </div>
-              )}
-
-              {/* TAB 3: Media Keys overrides editing */}
-              {activeSubTab === 'media' && activeConfig.mediaKeys && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px', flex: 1 }}>
-                  
-                  {/* Media uploads list */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    {activeConfig.mediaKeys.map(mKey => {
-                      const dbOverride = imageOverrides.find(o => o.key === mKey.key);
-                      const currentVal = dbOverride ? dbOverride.url : '';
-
-                      return (
-                        <div key={mKey.key} style={{
-                          background: '#FFFFFF',
-                          border: '1px solid rgba(162, 123, 60, 0.08)',
-                          padding: '24px',
-                          borderRadius: '12px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '12px',
-                          boxShadow: '0 2px 8px rgba(162, 123, 60, 0.03)'
-                        }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#A27B3C' }}>
-                              {mKey.label}
-                            </span>
-                            <span style={{ fontSize: '0.7rem', color: 'rgba(46, 37, 30, 0.4)', fontFamily: 'monospace' }}>
-                              key: {mKey.key}
-                            </span>
-                          </div>
-
-                          {/* Preview container */}
-                          {currentVal && mKey.type === 'image' && (
-                            <div style={{ height: '140px', background: '#F9F6F2', border: '1px solid rgba(162, 123, 60, 0.1)', borderRadius: '6px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <img src={currentVal} alt="Dynamic Override" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
-                            </div>
-                          )}
-
-                          {currentVal && mKey.type === 'video' && (
-                            <div style={{ height: '140px', background: '#F9F6F2', border: '1px solid rgba(162, 123, 60, 0.1)', borderRadius: '6px', overflow: 'hidden' }}>
-                              <video src={currentVal} controls muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            </div>
-                          )}
-
-                          <div style={{ display: 'flex', gap: '8px' }}>
-                            <input
-                              type="text"
-                              value={currentVal}
-                              onChange={(e) => handleManualUrlSave(mKey.key, e.target.value)}
-                              placeholder={mKey.type === 'text' ? 'Provide override phone/value...' : 'Direct URL override path...'}
-                              style={{
-                                flex: 1,
-                                padding: '8px 12px',
-                                background: '#FFFFFF',
-                                border: '1px solid rgba(162, 123, 60, 0.2)',
-                                borderRadius: '6px',
-                                color: '#2E251E',
-                                fontSize: '0.8rem',
-                                outline: 'none'
-                              }}
-                            />
-                            {currentVal && (
-                              <button
-                                onClick={() => removeMediaOverride(mKey.key)}
-                                style={{
-                                  padding: '8px 12px',
-                                  background: 'rgba(220, 53, 69, 0.05)',
-                                  border: '1px solid rgba(220, 53, 69, 0.25)',
-                                  color: '#DC3545',
-                                  borderRadius: '6px',
-                                  fontSize: '0.8rem',
-                                  cursor: 'pointer',
-                                  fontWeight: 600
-                                }}
-                              >
-                                Clear
-                              </button>
-                            )}
-                          </div>
-
-                          {mKey.type !== 'text' && (
-                            <div style={{ position: 'relative' }}>
-                              <button style={{
-                                width: '100%',
-                                padding: '10px',
-                                background: 'rgba(162, 123, 60, 0.06)',
-                                border: '1px solid rgba(162, 123, 60, 0.15)',
-                                borderRadius: '6px',
-                                color: '#A27B3C',
-                                fontSize: '0.8rem',
-                                fontWeight: 600,
-                                cursor: 'pointer'
-                              }}>
-                                {uploadingFile ? 'Uploading Asset...' : `Upload New ${mKey.type === 'video' ? 'Video' : 'Image'}`}
-                              </button>
-                              <input
-                                type="file"
-                                accept={mKey.type === 'video' ? 'video/*' : 'image/*'}
-                                disabled={uploadingFile}
-                                onChange={(e) => uploadFile(e, mKey.key)}
-                                style={{
-                                  position: 'absolute',
-                                  inset: 0,
-                                  opacity: 0,
-                                  cursor: 'pointer'
-                                }}
-                              />
-                            </div>
-                          )}
-
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div style={{
-                    background: '#FFFFFF',
-                    border: '1px solid rgba(162, 123, 60, 0.08)',
-                    borderRadius: '12px',
-                    padding: '24px',
-                    height: 'fit-content',
-                    boxShadow: '0 2px 8px rgba(162, 123, 60, 0.03)'
-                  }}>
-                    <h3 style={{ fontSize: '1rem', color: '#A27B3C', margin: '0 0 8px 0', fontWeight: 600 }}>Media Overriding Policy</h3>
-                    <p style={{ fontSize: '0.85rem', color: 'rgba(46, 37, 30, 0.65)', lineHeight: 1.6, margin: 0 }}>
-                      Uploading or overriding urls immediately maps resources for this section. Visitors loading the website will load these assets dynamically rather than baseline local files. Revert to defaults anytime by clicking <strong>Clear</strong>.
-                    </p>
-                  </div>
-
                 </div>
               )}
 
@@ -2316,7 +2183,6 @@ export default function CMSClient() {
                 </div>
 
               </div>
-
             </main>
           )}
 
@@ -2326,3 +2192,81 @@ export default function CMSClient() {
     </div>
   );
 }
+
+const SIDEBAR_ITEMS: SidebarItem[] = [
+  {
+    id: 'general',
+    name: 'General Settings',
+    type: 'page',
+    group: 'sections',
+    prefixes: ['nav.', 'footer.']
+  },
+  {
+    id: 'home',
+    name: 'Home Page',
+    type: 'page',
+    group: 'sections',
+    prefixes: ['hero.', 'founder.', 'globalReach.', 'whyArema.', 'products.', 'palakkad.', 'blog.', 'cta.'],
+    seoKey: 'home'
+  },
+  {
+    id: 'our-story',
+    name: 'Our Story Page',
+    type: 'page',
+    group: 'sections',
+    prefixes: ['ourStoryPage.'],
+    seoKey: 'ourStory'
+  },
+  {
+    id: 'why-arema',
+    name: 'Why Choose Arema',
+    type: 'page',
+    group: 'sections',
+    prefixes: ['whyAremaPage.'],
+    seoKey: 'whyArema'
+  },
+  {
+    id: 'products-catalog',
+    name: 'Products Page Text',
+    type: 'page',
+    group: 'sections',
+    prefixes: ['productsPage.', 'productDetail.'],
+    seoKey: 'products'
+  },
+  {
+    id: 'certs',
+    name: 'Certificates Page',
+    type: 'page',
+    group: 'sections',
+    prefixes: ['certsPage.'],
+    seoKey: 'certificates'
+  },
+  {
+    id: 'blog-page',
+    name: 'Blog Catalog Page',
+    type: 'page',
+    group: 'sections',
+    prefixes: ['blogPage.'],
+    seoKey: 'blog'
+  },
+  {
+    id: 'contact',
+    name: 'Contact Page',
+    type: 'page',
+    group: 'sections',
+    prefixes: ['contactPage.'],
+    seoKey: 'contact'
+  },
+  {
+    id: 'products-list',
+    name: 'Product Catalog Entries',
+    type: 'products',
+    group: 'catalogs'
+  },
+  {
+    id: 'blogs-list',
+    name: 'Blog Articles Manager',
+    type: 'blogs',
+    group: 'catalogs'
+  }
+];
