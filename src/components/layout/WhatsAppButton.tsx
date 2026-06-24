@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { useLanguage } from '@/i18n/LanguageContext';
 import styles from './WhatsAppButton.module.css';
 
@@ -39,8 +40,13 @@ const MESSAGES: Record<string, string> = {
 };
 
 export default function WhatsAppButton() {
+  const pathname = usePathname();
   const { lang, isRTL, getImage } = useLanguage();
   const [visible, setVisible] = useState(false);
+
+  if (pathname?.startsWith('/cms')) {
+    return null;
+  }
 
   useEffect(() => {
     // Check if the preloader has finished

@@ -1,12 +1,18 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import gsap from 'gsap';
 import styles from './Preloader.module.css';
 
 export default function Preloader() {
+  const pathname = usePathname();
   const [active, setActive] = useState(false);
+
+  if (pathname?.startsWith('/cms')) {
+    return null;
+  }
   const containerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);

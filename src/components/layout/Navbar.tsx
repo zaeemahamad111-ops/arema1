@@ -17,6 +17,9 @@ export default function Navbar() {
   const mobileDropdownRef = useRef<HTMLDivElement>(null);
   
   const pathname = usePathname();
+  if (pathname?.startsWith('/cms')) {
+    return null;
+  }
   const isHome = pathname === '/';
   const showLinks = !isHome || scrolled;
 

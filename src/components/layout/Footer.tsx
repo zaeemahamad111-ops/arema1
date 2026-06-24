@@ -1,11 +1,17 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import styles from './Footer.module.css';
 import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function Footer() {
+  const pathname = usePathname();
   const { t } = useLanguage();
+
+  if (pathname?.startsWith('/cms')) {
+    return null;
+  }
   const year = new Date().getFullYear();
 
   const footerLinks = {
