@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import ProductDetailClient from './ProductDetailClient';
+import { supabase } from '@/lib/supabase';
 
 interface Product {
   id: string;
@@ -172,7 +173,29 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  const product = PRODUCTS_DATA[id];
+  let product = PRODUCTS_DATA[id];
+
+  if (!product) {
+    try {
+      const { data: dbProd } = await supabase.from('products').select('*').eq('id', id).single();
+      if (dbProd) {
+        const { data: dbTrans } = await supabase.from('product_translations').select('*').eq('product_id', id).eq('lang', 'en').single();
+        if (dbTrans) {
+          product = {
+            id: dbProd.id,
+            name: dbTrans.name,
+            category: dbTrans.category,
+            tagline: dbTrans.tagline,
+            description: dbTrans.description,
+            highlights: dbTrans.highlights || [],
+            specs: dbTrans.specs || [],
+            image: dbProd.image_url,
+            gradient: 'linear-gradient(135deg, #ECEAE6 0%, #DBCDC0 100%)',
+          };
+        }
+      }
+    } catch (e) {}
+  }
 
   if (!product) {
     return {
@@ -188,7 +211,29 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const product = PRODUCTS_DATA[id];
+  let product = PRODUCTS_DATA[id];
+
+  if (!product) {
+    try {
+      const { data: dbProd } = await supabase.from('products').select('*').eq('id', id).single();
+      if (dbProd) {
+        const { data: dbTrans } = await supabase.from('product_translations').select('*').eq('product_id', id).eq('lang', 'en').single();
+        if (dbTrans) {
+          product = {
+            id: dbProd.id,
+            name: dbTrans.name,
+            category: dbTrans.category,
+            tagline: dbTrans.tagline,
+            description: dbTrans.description,
+            highlights: dbTrans.highlights || [],
+            specs: dbTrans.specs || [],
+            image: dbProd.image_url,
+            gradient: 'linear-gradient(135deg, #ECEAE6 0%, #DBCDC0 100%)',
+          };
+        }
+      }
+    } catch (e) {}
+  }
 
   if (!product) {
     notFound();

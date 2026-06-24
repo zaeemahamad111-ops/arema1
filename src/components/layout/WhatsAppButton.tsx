@@ -39,7 +39,7 @@ const MESSAGES: Record<string, string> = {
 };
 
 export default function WhatsAppButton() {
-  const { lang, isRTL } = useLanguage();
+  const { lang, isRTL, getImage } = useLanguage();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -70,7 +70,8 @@ export default function WhatsAppButton() {
   const encodedText = encodeURIComponent(baseMessage);
   
   // Format standard WhatsApp URL using wa.me format
-  const whatsappUrl = `https://wa.me/91${WHATSAPP_NUMBER}?text=${encodedText}`;
+  const whatsappNumber = getImage('whatsapp_number', WHATSAPP_NUMBER);
+  const whatsappUrl = `https://wa.me/91${whatsappNumber}?text=${encodedText}`;
 
   return (
     <div className={`${styles.whatsappContainer} ${visible ? styles.whatsappVisible : ''} ${isRTL ? styles.whatsappRTL : ''}`}>

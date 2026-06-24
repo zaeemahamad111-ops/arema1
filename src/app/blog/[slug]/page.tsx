@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import BlogDetailClient from './BlogDetailClient';
+import { supabase } from '@/lib/supabase';
 
 /* ── Article Database ──────────────────────────────────────────── */
 const articles: Record<string, {
@@ -121,7 +122,31 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const article = articles[slug];
+  let article = articles[slug];
+
+  if (!article) {
+    try {
+      const { data: dbBlog } = await supabase.from('blogs').select('*').eq('id', slug).single();
+      if (dbBlog) {
+        const { data: dbTrans } = await supabase.from('blog_translations').select('*').eq('blog_id', slug).eq('lang', 'en').single();
+        if (dbTrans) {
+          article = {
+            id: dbBlog.id,
+            category: dbTrans.category || 'Heritage',
+            readTime: dbTrans.readTime || '5 min read',
+            date: dbTrans.date || new Date(dbBlog.created_at || Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+            title: dbTrans.title,
+            excerpt: dbTrans.excerpt,
+            image: dbBlog.image_url,
+            body: dbTrans.body || [],
+            author: 'Arema Editorial',
+            authorRole: 'Field Notes Team',
+          };
+        }
+      }
+    } catch (e) {}
+  }
+
   if (!article) return { title: 'Article Not Found' };
   return {
     title: `${article.title} — Field Notes`,
@@ -140,7 +165,31 @@ export default async function BlogPostPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const article = articles[slug];
+  let article = articles[slug];
+
+  if (!article) {
+    try {
+      const { data: dbBlog } = await supabase.from('blogs').select('*').eq('id', slug).single();
+      if (dbBlog) {
+        const { data: dbTrans } = await supabase.from('blog_translations').select('*').eq('blog_id', slug).eq('lang', 'en').single();
+        if (dbTrans) {
+          article = {
+            id: dbBlog.id,
+            category: dbTrans.category || 'Heritage',
+            readTime: dbTrans.readTime || '5 min read',
+            date: dbTrans.date || new Date(dbBlog.created_at || Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+            title: dbTrans.title,
+            excerpt: dbTrans.excerpt,
+            image: dbBlog.image_url,
+            body: dbTrans.body || [],
+            author: 'Arema Editorial',
+            authorRole: 'Field Notes Team',
+          };
+        }
+      }
+    } catch (e) {}
+  }
+
   if (!article) notFound();
 
   return (

@@ -89,11 +89,32 @@ function ArrowRight({ size = 14 }: { size?: number }) {
 
 /* ── Page ───────────────────────────────────────────────────── */
 export default function BlogPage() {
-  const { currentTranslations, t, lang } = useLanguage();
+  const { currentTranslations, t, lang, dbBlogsRaw } = useLanguage();
 
   useEffect(() => {
     document.title = `${t('blogPage.eyebrow')} — Arema Foods International`;
   }, [t]);
+
+  const displayArticles = dbBlogsRaw && dbBlogsRaw.length > 0
+    ? dbBlogsRaw.map((b: any) => {
+        const base = articles.find(a => a.id === b.id) || {
+          id: b.id,
+          category: 'Heritage',
+          readTime: '5 min read',
+          date: new Date(b.created_at || Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+          title: b.id,
+          excerpt: '',
+          image: b.image_url,
+          featured: false
+        };
+        return {
+          ...base,
+          id: b.id,
+          image: b.image_url,
+          featured: b.id === 'matta-rice-world-stage'
+        };
+      })
+    : articles;
 
   const getCategoryTranslation = (cat: string) => {
     if (cat === 'All') {
@@ -113,7 +134,7 @@ export default function BlogPage() {
         default: return 'All';
       }
     }
-    const articleWithCat = articles.find(a => a.category === cat);
+    const articleWithCat = displayArticles.find(a => a.category === cat);
     if (articleWithCat) {
       const trans = currentTranslations.blogData?.[articleWithCat.id];
       if (trans) return trans.category;
@@ -121,7 +142,7 @@ export default function BlogPage() {
     return cat;
   };
 
-  const translatedArticles = articles.map((art) => {
+  const translatedArticles = displayArticles.map((art) => {
     const trans = currentTranslations.blogData?.[art.id];
     return {
       ...art,
@@ -133,8 +154,8 @@ export default function BlogPage() {
     };
   });
 
-  const featured = translatedArticles.find((a) => a.featured)!;
-  const rest = translatedArticles.filter((a) => !a.featured);
+  const featured = translatedArticles.find((a) => a.featured) || translatedArticles[0];
+  const rest = translatedArticles.filter((a) => a.id !== (featured?.id || ''));
 
   return (
     <main>
@@ -154,7 +175,7 @@ export default function BlogPage() {
             {t('blogPage.title')}<em>{t('blogPage.titleEm')}</em>
           </h1>
           <div className={styles.heroMeta}>
-            <span className={styles.articleCount}>{articles.length} {t('blogPage.articlesCount')}</span>
+            <span className={styles.articleCount}>{translatedArticles.length} {t('blogPage.articlesCount')}</span>
           </div>
         </div>
       </section>

@@ -15,7 +15,11 @@ const CATALOG_PRODUCTS = [
 ];
 
 export default function ProductsPage() {
-  const { t, currentTranslations } = useLanguage();
+  const { t, currentTranslations, dbProductsRaw } = useLanguage();
+
+  const displayProducts = dbProductsRaw && dbProductsRaw.length > 0
+    ? dbProductsRaw.map((p: any) => ({ id: p.id, image: p.image_url }))
+    : CATALOG_PRODUCTS;
 
   return (
     <main className={styles.main}>
@@ -34,7 +38,7 @@ export default function ProductsPage() {
       <section className={styles.catalogSection}>
         <div className={styles.container}>
           <div className={styles.grid}>
-            {CATALOG_PRODUCTS.map((prod) => {
+            {displayProducts.map((prod) => {
               const locProd = currentTranslations.productsData[prod.id] || {
                 name: prod.id,
                 category: 'Rice',

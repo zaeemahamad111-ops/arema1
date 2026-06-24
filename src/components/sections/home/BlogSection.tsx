@@ -104,11 +104,12 @@ export default function BlogSection() {
         <div ref={gridRef} className={styles.grid}>
           {blogPosts.map((post, i) => {
             const locPost = currentTranslations.blogData[post.id] || post;
+            const imageUrl = (locPost as any).image_url || post.img;
             return (
               <Link href={`/blog/${post.id}`} key={i} className={styles.card} data-blog-card>
                 <div className={styles.imageContainer}>
                   <Image
-                    src={post.img}
+                    src={imageUrl}
                     alt={locPost.title}
                     fill
                     className={styles.image}

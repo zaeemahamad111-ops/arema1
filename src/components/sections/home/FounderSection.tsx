@@ -11,7 +11,7 @@ if (typeof window !== 'undefined') {
 }
 
 export default function FounderSection() {
-  const { t } = useLanguage();
+  const { t, getImage } = useLanguage();
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true); // Default to muted in JSX for clean initial mount
   const userToggledMuteRef = useRef<boolean | null>(null); // Tracks if the user manually muted/unmuted
@@ -109,7 +109,7 @@ export default function FounderSection() {
             <div className={styles.videoWrapper} onClick={togglePlay}>
               <video
                 ref={videoRef}
-                src="/videos/founder-story-compressed.mp4"
+                src={getImage('founder_video', '/videos/founder-story-compressed.mp4')}
                 className={styles.mediaVideo}
                 loop
                 playsInline

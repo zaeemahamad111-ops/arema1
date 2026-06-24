@@ -9,7 +9,7 @@ import { useLanguage } from '@/i18n/LanguageContext';
 import { LANGUAGES } from '@/i18n/translations';
 
 export default function Navbar() {
-  const { lang, setLang, t } = useLanguage();
+  const { lang, setLang, t, getImage } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -66,7 +66,7 @@ export default function Navbar() {
           <Link href="/" className={styles.wordmark}>
             <div className={styles.logoIcon}>
               <Image
-                src="/images/logo.png"
+                src={getImage('logo', '/images/logo.png')}
                 alt="Arema Foods Logo"
                 width={54}
                 height={54}

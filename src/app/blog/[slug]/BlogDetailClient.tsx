@@ -30,6 +30,7 @@ export default function BlogDetailClient({ article }: { article: Article }) {
     title: trans?.title || article.title,
     excerpt: trans?.excerpt || article.excerpt,
     body: trans?.body || article.body,
+    image: (trans as any)?.image_url || article.image,
   };
 
   useEffect(() => {

@@ -73,6 +73,7 @@ export default function ProductDetailClient({ product, otherProducts }: ProductD
     ...locProduct,
     specs: locProduct.specs || product.specs,
     highlights: locProduct.highlights || product.highlights,
+    image: (locProduct as any).image_url || product.image,
   };
 
   // Look up translated versions of the recommended products
@@ -81,6 +82,7 @@ export default function ProductDetailClient({ product, otherProducts }: ProductD
     return {
       ...p,
       ...loc,
+      image: (loc as any).image_url || p.image,
     };
   });
 

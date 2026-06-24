@@ -100,6 +100,7 @@ export default function ProductsSection() {
         <div ref={gridRef} className={styles.grid}>
           {RECOMMENDED_PRODUCTS.map((prod) => {
             const locProd = currentTranslations.productsData[prod.id] || prod;
+            const imageUrl = (locProd as any).image_url || prod.image;
             return (
               <Link key={prod.id} href={`/products/${prod.id}`} className={styles.card}>
                 <div className={styles.imageContainer}>
@@ -108,7 +109,7 @@ export default function ProductsSection() {
                   {/* Floating Rice Bag */}
                   <div className={styles.bagWrapper}>
                     <Image
-                      src={prod.image}
+                      src={imageUrl}
                       alt={locProd.name}
                       width={300}
                       height={390}
