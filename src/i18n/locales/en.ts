@@ -172,14 +172,17 @@ export const en: TranslationSchema = {
     reachTitleEm: 'to the world.',
     reachBody: 'We do not just export rice; we export a guarantee. Our shipments clear the strictest customs in the world because our documentation is as flawless as our grain. Active export routes, fully certified.',
     route1Code: 'ROUTE / 01',
-    route1Region: 'United Arab Emirates & Qatar',
-    route1Ports: 'Serving hypermarkets and premium distributors across the Gulf.',
+    route1Region: 'Entire GCC',
+    route1Ports: 'Serving hypermarkets and premium distributors across all Gulf countries.',
     route2Code: 'ROUTE / 02',
     route2Region: 'United Kingdom & Europe',
     route2Ports: 'Compliant with strict EU/UK food safety and import standards.',
     route3Code: 'ROUTE / 03',
     route3Region: 'North America',
     route3Ports: 'Reaching the diaspora in major cities across the US and Canada.',
+    route4Code: 'ROUTE / 04',
+    route4Region: 'Australia & Africa',
+    route4Ports: 'Expanding our reach to key southern hemisphere and continental markets.',
     routeStatus: 'Active Export',
     closingQuote: 'We do not just export rice. We export the story of a land, a people, and a standard of care that has no shortcuts.',
     closingAttr: '— Founder, Arema Foods International',
@@ -268,6 +271,16 @@ export const en: TranslationSchema = {
     formMessage: 'Message *',
     formMessagePlaceholder: 'Tell us about your requirements...',
     formSubmit: 'Send Message',
+    addressName: 'Arema Foods International',
+    addressLine1: '27/665, 1st floor, Das complex,',
+    addressLine2: 'Near Builtech Pavilion, NH-47,',
+    addressLine3: 'Bypass Kadamkode, Palakkad,',
+    addressLine4: 'Kerala, South India - 678013',
+    email: 'aremafoodsinternational@gmail.com',
+    phone1: '+91 9778339292',
+    phone2: '0491 3589 795',
+    exportEmail: 'aremafoodsinternational@gmail.com',
+    mapEmbedUrl: 'https://maps.google.com/maps?q=10.7599086,76.6710477+(Arema+Foods+International)&t=&z=17&ie=UTF8&iwloc=&output=embed',
   },
   certsPage: {
     eyebrow: 'Our Certifications',
@@ -420,7 +433,7 @@ export const en: TranslationSchema = {
       ]
     },
     'jyothi-matta': {
-      name: 'Jyothi Matta Rice',
+      name: 'Jyothi Matta Rice (Short Grain)',
       category: 'Kerala Heritage',
       tagline: 'The Nutrition King - high fiber, red bran, and diabetic-friendly.',
       description: 'Known for its excellent cooking quality and soft texture, Jyothi Matta is rich in essential nutrients and antioxidants found in the red bran layer. It is a premium everyday health rice.',
@@ -439,7 +452,7 @@ export const en: TranslationSchema = {
       ]
     },
     'uma-matta': {
-      name: 'Uma Matta Rice',
+      name: 'Uma Matta Rice (Long Grain)',
       category: 'Kerala Heritage',
       tagline: 'Easy Digest - light on stomach, quick cooking, and kid-friendly.',
       description: 'An easy-to-digest Matta rice variety that is light on the stomach and quick to cook. Perfect for daily consumption, especially suitable for children and elderly family members.',
@@ -512,7 +525,7 @@ export const en: TranslationSchema = {
     },
     'puttu-podi': {
       name: 'Premium Puttu Podi',
-      category: 'Value Added Products',
+      category: 'Rice Powders',
       tagline: 'Traditional Kerala breakfast in just 5 minutes - just add water.',
       description: 'Made from premium roasted rice flour with zero raw smell. It is free-flowing, lump-free, healthy, and fiber-rich, preserving the authentic traditional taste of Kerala\'s favorite breakfast.',
       highlights: [
@@ -530,7 +543,7 @@ export const en: TranslationSchema = {
     },
     'idiyappam-podi': {
       name: 'Premium Idiyappam Podi',
-      category: 'Value Added Products',
+      category: 'Rice Powders',
       tagline: 'For lighter, softer, and melt-in-the-mouth Idiyappams.',
       description: 'High-quality rice flour made with zero tapioca, zero maida, and zero raw smell. Preservative-free and fiber-rich, it yields perfectly textured, soft Idiyappams.',
       highlights: [
@@ -547,7 +560,7 @@ export const en: TranslationSchema = {
     },
     'pathiri-podi': {
       name: 'Premium Pathiri Podi',
-      category: 'Value Added Products',
+      category: 'Rice Powders',
       tagline: 'Ultra-fine roasted rice flour for paper-thin Pathiris.',
       description: 'An ultra-fine roasted rice flour sourced from paddy grown in the fertile Bharathapuzha basin. Naturally fiber-rich and easy to digest compared to maida pathiris, with zero percent maida.',
       highlights: [
@@ -564,7 +577,7 @@ export const en: TranslationSchema = {
     },
     'kondattam': {
       name: 'Premium Kerala Kondattam',
-      category: 'Value Added Products',
+      category: 'Kondattams',
       tagline: 'Sun-dried preserves with 0% chemicals, keeping traditional wisdom alive.',
       description: 'Sun-dried vegetable and rice preserves made using ancient preservation methods. Free of artificial colors, preservatives, or additives. Light-weight and extremely crisp when fried.',
       highlights: [
@@ -578,6 +591,74 @@ export const en: TranslationSchema = {
         { label: 'Varieties', value: 'Ari, Mulak, Pavakka, Payar, Vazhapindi, Vendakka' },
         { label: 'Preservation', value: '100% Natural Sun-dried' },
         { label: 'Additives', value: 'None (0% artificial colors/preservatives)' }
+      ]
+    },
+    'ari-kondattam': {
+      name: 'Ari Kondattam (Rice Wafers)',
+      category: 'Kondattams',
+      tagline: 'Crispy sun-dried rice wafers — the perfect traditional side for Kanji.',
+      description: 'Ari Kondattam is a traditional Kerala sun-dried rice preserve made from select rice varieties. Crafted using ancient preservation methods with zero chemicals, these crispy wafers deliver authentic taste and crunch when fried. A timeless accompaniment to rice gruel (Kanji) and curries.',
+      highlights: [
+        'Made from select Kerala rice varieties',
+        'Sun-dried with zero chemicals or additives',
+        'Extremely crisp and flavorful when fried',
+        'Perfect with Kanji or as a side dish'
+      ],
+      specs: [
+        { label: 'Product Type', value: 'Sun-dried rice wafers (Ari Kondattam)' },
+        { label: 'Preservation', value: '100% Natural Sun-dried' },
+        { label: 'Additives', value: 'None' }
+      ]
+    },
+    'mulaku-kondattam': {
+      name: 'Mulaku Kondattam (Chilli Wafers)',
+      category: 'Kondattams',
+      tagline: 'Spicy sun-dried chilli wafers with bold Kerala heat.',
+      description: 'Mulaku Kondattam captures the bold, fiery character of Kerala green chillies in sun-dried wafer form. Prepared using traditional methods with no preservatives, these wafers fry up crispy and deliver an authentic spicy kick that elevates any meal.',
+      highlights: [
+        'Bold, authentic Kerala chilli flavour',
+        'Sun-dried naturally — zero preservatives',
+        'Crispy and fiery when fried',
+        'Traditional recipe, unchanged for generations'
+      ],
+      specs: [
+        { label: 'Product Type', value: 'Sun-dried chilli wafers (Mulaku Kondattam)' },
+        { label: 'Preservation', value: '100% Natural Sun-dried' },
+        { label: 'Additives', value: 'None' }
+      ]
+    },
+    'pavakka-kondattam': {
+      name: 'Pavakka Kondattam (Bitter Gourd Wafers)',
+      category: 'Kondattams',
+      tagline: 'Sun-dried bitter gourd wafers — a nutritious traditional Kerala side.',
+      description: 'Pavakka Kondattam is a nutritious sun-dried bitter gourd preserve made using traditional Kerala methods. Known for its health benefits and distinctive bitter flavour, these wafers are free from artificial additives and fry up beautifully crisp — a beloved accompaniment to everyday Kerala meals.',
+      highlights: [
+        'Rich in nutrients from bitter gourd',
+        'Traditional preservation — zero chemicals',
+        'Crispy, flavourful when fried',
+        'A healthy, authentic Kerala side dish'
+      ],
+      specs: [
+        { label: 'Product Type', value: 'Sun-dried bitter gourd wafers (Pavakka Kondattam)' },
+        { label: 'Preservation', value: '100% Natural Sun-dried' },
+        { label: 'Additives', value: 'None' }
+      ]
+    },
+    'payar-kondattam': {
+      name: 'Payar Kondattam (Yard Bean Wafers)',
+      category: 'Kondattams',
+      tagline: 'Sun-dried yard bean wafers — protein-rich and traditionally made.',
+      description: 'Payar Kondattam is a sun-dried yard bean (long bean) preserve made using authentic Kerala methods. High in protein and fibre, these preserves are free from artificial additives. When fried, they turn delightfully crispy and nutty — a wholesome and traditional side for everyday meals.',
+      highlights: [
+        'High in protein and fibre from yard beans',
+        'Sun-dried naturally — no preservatives',
+        'Crispy and nutty when fried',
+        'Authentic traditional Kerala preserve'
+      ],
+      specs: [
+        { label: 'Product Type', value: 'Sun-dried yard bean wafers (Payar Kondattam)' },
+        { label: 'Preservation', value: '100% Natural Sun-dried' },
+        { label: 'Additives', value: 'None' }
       ]
     }
   },
@@ -691,5 +772,8 @@ export const en: TranslationSchema = {
       description: 'Browse our selection of premium Palakkad Matta, Kuruva, Jeerakasala, and other aromatic specialty grains.',
       keywords: 'matta rice catalog, kuruva rice wholesale, jeerakasala export'
     }
+  },
+  global: {
+    productCategories: 'Kerala Heritage,Premium Grade,Aromatic Collection,Medicinal & Heritage,Specialty Aromatic,Rice Powders,Kondattams'
   }
 };

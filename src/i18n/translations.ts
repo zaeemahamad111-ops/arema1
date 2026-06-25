@@ -141,6 +141,9 @@ export interface TranslationSchema {
     route3Code: string;
     route3Region: string;
     route3Ports: string;
+    route4Code?: string;
+    route4Region?: string;
+    route4Ports?: string;
     routeStatus: string;
     closingQuote: string;
     closingAttr: string;
@@ -203,6 +206,16 @@ export interface TranslationSchema {
     formMessage: string;
     formMessagePlaceholder: string;
     formSubmit: string;
+    addressName?: string;
+    addressLine1?: string;
+    addressLine2?: string;
+    addressLine3?: string;
+    addressLine4?: string;
+    email?: string;
+    phone1?: string;
+    phone2?: string;
+    exportEmail?: string;
+    mapEmbedUrl?: string;
   };
   certsPage: {
     eyebrow: string;
@@ -253,6 +266,9 @@ export interface TranslationSchema {
     blog: { title: string; description: string; keywords: string };
     contact: { title: string; description: string; keywords: string };
     products: { title: string; description: string; keywords: string };
+  };
+  global?: {
+    productCategories: string;
   };
 }
 

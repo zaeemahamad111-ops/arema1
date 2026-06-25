@@ -202,7 +202,7 @@ export const it: TranslationSchema = {
     "reachTitleEm": "al mondo.",
     "reachBody": "Non esportiamo solo riso, esportiamo certezze. Le nostre spedizioni superano i controlli doganali più rigorosi grazie a una documentazione perfetta.",
     "route1Code": "ROUTE / 01",
-    "route1Region": "Emirati Arabi Uniti & Qatar",
+    "route1Region": "GCC",
     "route1Ports": "Fornitura a catene di supermercati e distributori premium del Golfo.",
     "route2Code": "ROUTE / 02",
     "route2Region": "Regno Unito & Europa",

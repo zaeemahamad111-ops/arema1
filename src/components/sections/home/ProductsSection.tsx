@@ -15,23 +15,23 @@ if (typeof window !== 'undefined') {
 const RECOMMENDED_PRODUCTS = [
   {
     id: 'jyothi-matta',
-    name: 'Jyothi Matta Rice',
+    name: 'Jyothi Matta Rice (Short Grain)',
     category: 'Kerala Heritage',
     tagline: 'The Nutrition King - high fiber, red bran, and diabetic-friendly.',
     image: '/images/product-bag-nobg.png',
   },
   {
-    id: 'ast-white-rice',
-    name: 'AST White Rice',
-    category: 'Premium Grade',
-    tagline: 'Aromatic Premium - natural aroma, quick cooking, and fluffy grains.',
+    id: 'uma-matta',
+    name: 'Uma Matta Rice (Long Grain)',
+    category: 'Kerala Heritage',
+    tagline: 'Easy Digest - light on stomach, quick cooking, and kid-friendly.',
     image: '/images/product-bag-nobg.png',
   },
   {
-    id: 'puttu-podi',
-    name: 'Premium Puttu Podi',
-    category: 'Value Added Products',
-    tagline: 'Traditional Kerala breakfast in just 5 minutes - just add water.',
+    id: 'kanjana-matta',
+    name: 'Kanjana Matta (Vadi Matta)',
+    category: 'Kerala Heritage',
+    tagline: 'Golden Premium - golden-red, aromatic long grains for festive dining.',
     image: '/images/product-bag-nobg.png',
   },
 ];

@@ -16,13 +16,51 @@ export default function ContactPage() {
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const subject = `Website Inquiry: ${formData.inquiry} from ${formData.name}`;
-    const body = `Name: ${formData.name}\nCompany: ${formData.company}\nEmail: ${formData.email}\nPhone: ${formData.phone}\n\nMessage:\n${formData.message}`;
-    window.location.href = `mailto:nibeesh.jb@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    setSubmitted(true);
+    setLoading(true);
+
+    const accessKey = process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY || '8ea06281-a237-4c4f-a286-b99e541433dd';
+    if (!accessKey) {
+      console.warn('Web3Forms Access Key is missing. Using mailto fallback.');
+      const subject = `Website Inquiry: ${formData.inquiry} from ${formData.name}`;
+      const body = `Name: ${formData.name}\nCompany: ${formData.company}\nEmail: ${formData.email}\nPhone: ${formData.phone}\n\nMessage:\n${formData.message}`;
+      window.location.href = `mailto:${t('contactPage.email')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      setSubmitted(true);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify({
+          access_key: accessKey,
+          subject: `Website Inquiry: ${formData.inquiry} from ${formData.name}`,
+          from_name: formData.name,
+          ...formData
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setSubmitted(true);
+      } else {
+        console.error('Web3Forms Error:', result.message);
+        alert('There was an issue submitting your form. Please try again later.');
+      }
+    } catch (error) {
+      console.error('Submission Error:', error);
+      alert('Network error. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -60,24 +98,24 @@ export default function ContactPage() {
               <div className={styles.infoBlock}>
                 <h3 className={styles.infoTitle}>{t('contactPage.address')}</h3>
                 <address style={{ fontStyle: 'normal' }}>
-                  <p className="body-base">Arema Foods International</p>
-                  <p className="body-sm">27/665, 1st floor, Das complex,</p>
-                  <p className="body-sm">Near Builtech Pavilion, NH-47,</p>
-                  <p className="body-sm">Bypass Kadamkode, Palakkad,</p>
-                  <p className="body-sm">Kerala, South India - 678013</p>
+                  <p className="body-base">{t('contactPage.addressName')}</p>
+                  <p className="body-sm">{t('contactPage.addressLine1')}</p>
+                  <p className="body-sm">{t('contactPage.addressLine2')}</p>
+                  <p className="body-sm">{t('contactPage.addressLine3')}</p>
+                  <p className="body-sm">{t('contactPage.addressLine4')}</p>
                 </address>
               </div>
 
               <div className={styles.infoBlock}>
                 <h3 className={styles.infoTitle}>{t('contactPage.contact')}</h3>
-                <a href="mailto:nibeesh.jb@gmail.com" className={styles.infoLink}>nibeesh.jb@gmail.com</a>
-                <a href="tel:+919778339292" className={styles.infoLink}>+91 9778339292</a>
-                <a href="tel:04913589795" className={styles.infoLink}>0491 3589 795</a>
+                <a href={`mailto:${t('contactPage.email')}`} className={styles.infoLink}>{t('contactPage.email')}</a>
+                <a href={`tel:${t('contactPage.phone1')}`} className={styles.infoLink}>{t('contactPage.phone1')}</a>
+                <a href={`tel:${t('contactPage.phone2')}`} className={styles.infoLink}>{t('contactPage.phone2')}</a>
               </div>
 
               <div className={styles.infoBlock}>
                 <h3 className={styles.infoTitle}>{t('contactPage.exportInq')}</h3>
-                <a href="mailto:nibeesh.jb@gmail.com" className={styles.infoLink}>nibeesh.jb@gmail.com</a>
+                <a href={`mailto:${t('contactPage.exportEmail')}`} className={styles.infoLink}>{t('contactPage.exportEmail')}</a>
               </div>
 
               <div className={styles.infoBlock}>
@@ -192,8 +230,8 @@ export default function ContactPage() {
                     />
                   </div>
 
-                  <button type="submit" className={`btn btn--primary ${styles.submitBtn}`}>
-                    {t('contactPage.formSubmit')}
+                  <button type="submit" disabled={loading} className={`btn btn--primary ${styles.submitBtn}`}>
+                    {loading ? 'Sending...' : t('contactPage.formSubmit')}
                   </button>
                 </form>
               )}
@@ -205,7 +243,7 @@ export default function ContactPage() {
       {/* ── FULL WIDTH MAP ───────────────────────────── */}
       <section style={{ width: '100%', height: '550px' }}>
         <iframe
-          src="https://maps.google.com/maps?q=10.7605205,76.671108+(Arema+Foods+International)&t=&z=17&ie=UTF8&iwloc=&output=embed"
+          src={t('contactPage.mapEmbedUrl')}
           width="100%"
           height="100%"
           style={{ border: 0 }}

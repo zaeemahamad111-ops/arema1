@@ -202,7 +202,7 @@ export const es: TranslationSchema = {
     "reachTitleEm": "al mundo.",
     "reachBody": "No solo exportamos arroz; exportamos una garantía. Nuestros envíos pasan las aduanas más estrictas del mundo porque nuestra documentación es tan impecable como nuestro grano.",
     "route1Code": "RUTA / 01",
-    "route1Region": "Emiratos Árabes Unidos y Qatar",
+    "route1Region": "GCC",
     "route1Ports": "Sirviendo a hipermercados y distribuidores premium en el Golfo.",
     "route2Code": "RUTA / 02",
     "route2Region": "Reino Unido y Europa",

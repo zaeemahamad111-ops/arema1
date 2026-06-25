@@ -46,14 +46,14 @@ export default function Footer() {
                 {t('footer.tagline')}
               </p>
               <div className={styles.socials}>
-                <a href="#" aria-label="LinkedIn" className={styles.social}>
+                <a href="https://www.linkedin.com/in/arema-foods-international-5166253a1" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className={styles.social}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
                     <rect x="2" y="9" width="4" height="12"/>
                     <circle cx="4" cy="4" r="2"/>
                   </svg>
                 </a>
-                <a href="#" aria-label="Instagram" className={styles.social}>
+                <a href="https://www.instagram.com/aremafoodsinternational/?__pwa=1" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className={styles.social}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
                     <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
@@ -96,21 +96,21 @@ export default function Footer() {
             <div className={styles.col}>
               <h4 className={styles.colTitle}>{t('footer.contact')}</h4>
               <address className={styles.address}>
-                <p>Arema Foods International</p>
-                <p>27/665, 1st floor, Das complex,</p>
-                <p>Near Builtech Pavilion, NH-47,</p>
-                <p>Bypass Kadamkode, Palakkad,</p>
-                <p>Kerala, South India - 678013</p>
-                <a href="mailto:nibeesh.jb@gmail.com" className={styles.colLink}>
-                  nibeesh.jb@gmail.com
+                <p>{t('contactPage.addressName')}</p>
+                <p>{t('contactPage.addressLine1')}</p>
+                <p>{t('contactPage.addressLine2')}</p>
+                <p>{t('contactPage.addressLine3')}</p>
+                <p>{t('contactPage.addressLine4')}</p>
+                <a href={`mailto:${t('contactPage.email')}`} className={styles.colLink}>
+                  {t('contactPage.email')}
                 </a>
                 <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                  <a href="tel:+919778339292" className={styles.colLink}>
-                    +91 9778339292
+                  <a href={`tel:${t('contactPage.phone1')}`} className={styles.colLink}>
+                    {t('contactPage.phone1')}
                   </a>
                   <span style={{ color: 'var(--charcoal-60)' }}>|</span>
-                  <a href="tel:04913589795" className={styles.colLink}>
-                    0491 3589 795
+                  <a href={`tel:${t('contactPage.phone2')}`} className={styles.colLink}>
+                    {t('contactPage.phone2')}
                   </a>
                 </div>
               </address>

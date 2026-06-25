@@ -60,6 +60,7 @@ const PAGE_FLOWS: Record<string, (string | MediaConfig)[]> = {
     'ourStoryPage.route1Code', 'ourStoryPage.route1Region', 'ourStoryPage.route1Ports',
     'ourStoryPage.route2Code', 'ourStoryPage.route2Region', 'ourStoryPage.route2Ports',
     'ourStoryPage.route3Code', 'ourStoryPage.route3Region', 'ourStoryPage.route3Ports',
+    'ourStoryPage.route4Code', 'ourStoryPage.route4Region', 'ourStoryPage.route4Ports',
     'ourStoryPage.routeStatus',
     'ourStoryPage.closingQuote', 'ourStoryPage.closingAttr', 'ourStoryPage.closingCta'
   ],
@@ -82,8 +83,11 @@ const PAGE_FLOWS: Record<string, (string | MediaConfig)[]> = {
   ],
   contact: [
     'contactPage.heroLabel', 'contactPage.heroTitle', 'contactPage.heroTitleEm', 'contactPage.heroDesc',
-    'contactPage.address', 'contactPage.contact', 'contactPage.exportInq', 'contactPage.hoursTitle', 'contactPage.hoursDays', 'contactPage.hoursTime',
-    'contactPage.successTitle', 'contactPage.successBody', 'contactPage.formName', 'contactPage.formCompany', 'contactPage.formEmail', 'contactPage.formPhone', 'contactPage.formInquiryType', 'contactPage.formInquiryWholesale', 'contactPage.formInquiryPartner', 'contactPage.formInquiryLabel', 'contactPage.formInquiryRetail', 'contactPage.formInquiryMedia', 'contactPage.formInquiryOther', 'contactPage.formMessage', 'contactPage.formMessagePlaceholder', 'contactPage.formSubmit'
+    'contactPage.address', 'contactPage.addressName', 'contactPage.addressLine1', 'contactPage.addressLine2', 'contactPage.addressLine3', 'contactPage.addressLine4',
+    'contactPage.contact', 'contactPage.email', 'contactPage.phone1', 'contactPage.phone2',
+    'contactPage.exportInq', 'contactPage.exportEmail', 'contactPage.hoursTitle', 'contactPage.hoursDays', 'contactPage.hoursTime',
+    'contactPage.successTitle', 'contactPage.successBody', 'contactPage.formName', 'contactPage.formCompany', 'contactPage.formEmail', 'contactPage.formPhone', 'contactPage.formInquiryType', 'contactPage.formInquiryWholesale', 'contactPage.formInquiryPartner', 'contactPage.formInquiryLabel', 'contactPage.formInquiryRetail', 'contactPage.formInquiryMedia', 'contactPage.formInquiryOther', 'contactPage.formMessage', 'contactPage.formMessagePlaceholder', 'contactPage.formSubmit',
+    'contactPage.mapEmbedUrl'
   ]
 };
 
@@ -135,6 +139,7 @@ export default function CMSClient() {
   // Product Selection/Drafts
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [isAddingProduct, setIsAddingProduct] = useState(false);
+  const [isManagingCategories, setIsManagingCategories] = useState(false);
   const [productDraft, setProductDraft] = useState({
     id: '',
     image_url: '/images/product-bag-nobg.png',
@@ -167,8 +172,8 @@ export default function CMSClient() {
   const [uploadingFile, setUploadingFile] = useState(false);
 
   // Fetch Database State
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const [
         { data: trans },
@@ -179,7 +184,7 @@ export default function CMSClient() {
         { data: imgs },
       ] = await Promise.all([
         supabase.from('site_translations').select('*'),
-        supabase.from('products').select('*'),
+        supabase.from('products').select('*').order('order_index', { ascending: true }),
         supabase.from('product_translations').select('*'),
         supabase.from('blogs').select('*'),
         supabase.from('blog_translations').select('*'),
@@ -188,9 +193,10 @@ export default function CMSClient() {
 
       if (trans) setSiteTranslations(trans);
       if (prods) {
-        setProducts(prods);
-        if (prods.length > 0 && !selectedProductId) {
-          setSelectedProductId(prods[0].id);
+        const sorted = [...(prods || [])].sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
+        setProducts(sorted);
+        if (sorted.length > 0 && !selectedProductId) {
+          setSelectedProductId(sorted[0].id);
         }
       }
       if (prodTrans) setProductTranslations(prodTrans);
@@ -205,7 +211,7 @@ export default function CMSClient() {
     } catch (err: any) {
       showStatus('Connection with Supabase failed. Check configuration.', true);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -371,11 +377,52 @@ export default function CMSClient() {
       showStatus('Product settings updated successfully!');
       setIsAddingProduct(false);
       setSelectedProductId(productDraft.id);
-      await fetchData();
+      await fetchData(true);
     } catch (err: any) {
       showStatus(`Product save error: ${err.message}`, true);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const moveProduct = async (id: string, direction: 'up' | 'down') => {
+    const ptThis = productTranslations.find(pt => pt.product_id === id && pt.lang === 'en');
+    const thisCat = ptThis?.category || 'Rice';
+    
+    // get all products in this category
+    const catProducts = products.filter(p => {
+      const pt = productTranslations.find(pt => pt.product_id === p.id && pt.lang === 'en');
+      return (pt?.category || 'Rice') === thisCat;
+    });
+
+    const idx = catProducts.findIndex(p => p.id === id);
+    if (idx < 0) return;
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= catProducts.length) return;
+
+    const targetProduct = catProducts[idx];
+    const swapProduct = catProducts[swapIdx];
+
+    const aOrder = targetProduct.order_index ?? products.findIndex(p => p.id === id);
+    const bOrder = swapProduct.order_index ?? products.findIndex(p => p.id === swapProduct.id);
+
+    const newProducts = [...products];
+    const globalIdxTarget = newProducts.findIndex(p => p.id === id);
+    const globalIdxSwap = newProducts.findIndex(p => p.id === swapProduct.id);
+
+    // Swap order_index values in local state
+    newProducts[globalIdxTarget] = { ...newProducts[globalIdxTarget], order_index: bOrder };
+    newProducts[globalIdxSwap] = { ...newProducts[globalIdxSwap], order_index: aOrder };
+    newProducts.sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
+    setProducts(newProducts);
+
+    try {
+      await Promise.all([
+        supabase.from('products').update({ order_index: bOrder }).eq('id', id),
+        supabase.from('products').update({ order_index: aOrder }).eq('id', swapProduct.id),
+      ]);
+    } catch (err: any) {
+      showStatus(`Reorder failed: ${err.message}`, true);
     }
   };
 
@@ -423,7 +470,7 @@ export default function CMSClient() {
       showStatus('Blog article saved successfully!');
       setIsAddingBlog(false);
       setSelectedBlogId(blogDraft.id);
-      await fetchData();
+      await fetchData(true);
     } catch (err: any) {
       showStatus(`Blog save error: ${err.message}`, true);
     } finally {
@@ -1173,43 +1220,88 @@ export default function CMSClient() {
               }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto' }}>
                   <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(46, 37, 30, 0.45)', marginBottom: '12px', paddingLeft: '8px', fontWeight: 700 }}>Catalog Entries</div>
-                  {products.map(p => {
-                    const trans = productTranslations.find(pt => pt.product_id === p.id && pt.lang === 'en');
-                    return (
-                      <button
-                        key={p.id}
-                        onClick={() => {
-                          setIsAddingProduct(false);
-                          setSelectedProductId(p.id);
-                        }}
-                        style={{
-                          width: '100%',
-                          textAlign: 'left',
-                          padding: '10px 12px',
-                          background: (!isAddingProduct && selectedProductId === p.id) ? 'rgba(162, 123, 60, 0.08)' : 'transparent',
-                          border: 'none',
-                          borderRadius: '8px',
-                          color: (!isAddingProduct && selectedProductId === p.id) ? '#A27B3C' : 'rgba(46, 37, 30, 0.75)',
-                          fontSize: '0.85rem',
-                          fontWeight: 500,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '2px',
-                          transition: 'all 0.15s'
-                        }}
-                      >
-                        <span style={{ fontWeight: 600 }}>{trans?.name || p.id}</span>
-                        <span style={{ fontSize: '0.7rem', color: 'rgba(46, 37, 30, 0.45)', fontFamily: 'monospace' }}>{p.id}</span>
-                      </button>
-                    );
-                  })}
+                  {(() => {
+                    const categoriesString = siteTranslations.find(t => t.key === 'global.productCategories' && t.lang === 'en')?.value || 'Kerala Heritage,Premium Grade,Aromatic Collection,Medicinal & Heritage,Specialty Aromatic,Rice Powders,Kondattams';
+                    const categoryOrder = categoriesString.split(',').map((c: string) => c.trim()).filter(Boolean);
+                    
+                    const groupedProducts: Record<string, typeof products> = {};
+                    products.forEach(p => {
+                      const trans = productTranslations.find(pt => pt.product_id === p.id && pt.lang === 'en');
+                      const cat = trans?.category || 'Rice';
+                      if (!groupedProducts[cat]) groupedProducts[cat] = [];
+                      groupedProducts[cat].push(p);
+                    });
+
+                    const orderedCategories = categoryOrder.filter((cat: string) => groupedProducts[cat]);
+                    Object.keys(groupedProducts).forEach(cat => {
+                      if (!orderedCategories.includes(cat)) orderedCategories.push(cat);
+                    });
+
+                    return orderedCategories.map((cat: string) => (
+                      <div key={cat} style={{ marginBottom: '12px' }}>
+                        <div style={{ fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#C5A059', marginBottom: '6px', paddingLeft: '8px', fontWeight: 700 }}>
+                          ▼ {cat}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          {groupedProducts[cat].map(p => {
+                            const trans = productTranslations.find(pt => pt.product_id === p.id && pt.lang === 'en');
+                            return (
+                              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <button
+                                  onClick={() => {
+                                    setIsAddingProduct(false);
+                                    setSelectedProductId(p.id);
+                                  }}
+                                  style={{
+                                    flex: 1,
+                                    textAlign: 'left',
+                                    padding: '8px 12px',
+                                    background: (!isAddingProduct && selectedProductId === p.id) ? 'rgba(162, 123, 60, 0.08)' : 'transparent',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    color: (!isAddingProduct && selectedProductId === p.id) ? '#A27B3C' : 'rgba(46, 37, 30, 0.75)',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 500,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '2px',
+                                    transition: 'all 0.15s'
+                                  }}
+                                >
+                                  <span style={{ fontWeight: 600 }}>{trans?.name || p.id}</span>
+                                  <span style={{ fontSize: '0.65rem', color: 'rgba(46, 37, 30, 0.45)', fontFamily: 'monospace' }}>{p.id}</span>
+                                </button>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                  <button
+                                    onClick={() => moveProduct(p.id, 'up')}
+                                    title="Move Up"
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(46,37,30,0.4)', padding: '2px 4px', borderRadius: '4px', lineHeight: 1 }}
+                                    onMouseOver={(e) => e.currentTarget.style.color = '#A27B3C'}
+                                    onMouseOut={(e) => e.currentTarget.style.color = 'rgba(46,37,30,0.4)'}
+                                  >▲</button>
+                                  <button
+                                    onClick={() => moveProduct(p.id, 'down')}
+                                    title="Move Down"
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(46,37,30,0.4)', padding: '2px 4px', borderRadius: '4px', lineHeight: 1 }}
+                                    onMouseOver={(e) => e.currentTarget.style.color = '#A27B3C'}
+                                    onMouseOut={(e) => e.currentTarget.style.color = 'rgba(46,37,30,0.4)'}
+                                  >▼</button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ));
+                  })()}
                 </div>
 
                 <button
                   onClick={() => {
                     setIsAddingProduct(true);
                     setSelectedProductId(null);
+                    setIsManagingCategories(false);
                     setProductDraft({
                       id: '',
                       image_url: '/images/product-bag-nobg.png',
@@ -1239,14 +1331,90 @@ export default function CMSClient() {
                 >
                   + Add Product
                 </button>
+
+                <button
+                  onClick={() => {
+                    setIsAddingProduct(false);
+                    setSelectedProductId(null);
+                    setIsManagingCategories(true);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    background: '#FFFFFF',
+                    border: '1px solid rgba(162, 123, 60, 0.4)',
+                    borderRadius: '8px',
+                    color: '#A27B3C',
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    marginTop: '8px'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(162, 123, 60, 0.03)'}
+                  onMouseOut={(e) => e.currentTarget.style.background = '#FFFFFF'}
+                >
+                  ⚙️ Manage Categories
+                </button>
               </aside>
 
               {/* Product form editing panel */}
               <div style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
                 
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
+                {isManagingCategories ? (
+                  <div>
+                    <h2 style={{ fontSize: '1.4rem', margin: '0 0 6px 0', fontFamily: 'Georgia', fontWeight: 600, color: '#2E251E' }}>
+                      Manage Product Categories
+                    </h2>
+                    <p style={{ fontSize: '0.85rem', color: 'rgba(46, 37, 30, 0.55)', margin: 0, marginBottom: '24px' }}>
+                      Reorder the categories below to change how they appear on the products page.
+                    </p>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxWidth: '600px' }}>
+                      {(() => {
+                        const categoriesString = siteTranslations.find(t => t.key === 'global.productCategories' && t.lang === 'en')?.value || 'Kerala Heritage,Premium Grade,Aromatic Collection,Medicinal & Heritage,Specialty Aromatic,Rice Powders,Kondattams';
+                        const cats = categoriesString.split(',').map((c: string) => c.trim()).filter(Boolean);
+                        
+                        const moveCat = async (idx: number, dir: 'up'|'down') => {
+                          const newCats = [...cats];
+                          const swapIdx = dir === 'up' ? idx - 1 : idx + 1;
+                          if (swapIdx < 0 || swapIdx >= newCats.length) return;
+                          
+                          [newCats[idx], newCats[swapIdx]] = [newCats[swapIdx], newCats[idx]];
+                          const newString = newCats.join(',');
+                          
+                          try {
+                            setSaving(true);
+                            await supabase.from('site_translations').upsert({
+                              key: 'global.productCategories',
+                              lang: 'en',
+                              value: newString
+                            }, { onConflict: 'key,lang' });
+                            await fetchData();
+                          } catch (err: any) {
+                            showStatus(`Failed to update categories: ${err.message}`, true);
+                          } finally {
+                            setSaving(false);
+                          }
+                        };
+                        
+                        return cats.map((cat: string, i: number) => (
+                          <div key={cat} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#FFFFFF', border: '1px solid rgba(162, 123, 60, 0.15)', borderRadius: '8px' }}>
+                            <span style={{ fontWeight: 600, color: '#2E251E' }}>{cat}</span>
+                            <div style={{ display: 'flex', gap: '16px' }}>
+                              <button onClick={() => moveCat(i, 'up')} disabled={i === 0 || saving} style={{ cursor: (i === 0 || saving) ? 'not-allowed' : 'pointer', background: 'none', border: '1px solid rgba(162,123,60,0.2)', padding: '4px 12px', borderRadius: '4px', color: '#A27B3C' }}>▲ Move Up</button>
+                              <button onClick={() => moveCat(i, 'down')} disabled={i === cats.length - 1 || saving} style={{ cursor: (i === cats.length - 1 || saving) ? 'not-allowed' : 'pointer', background: 'none', border: '1px solid rgba(162,123,60,0.2)', padding: '4px 12px', borderRadius: '4px', color: '#A27B3C' }}>▼ Move Down</button>
+                            </div>
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
                   alignItems: 'center',
                   marginBottom: '24px',
                   borderBottom: '1px solid rgba(162, 123, 60, 0.12)',
@@ -1670,8 +1838,33 @@ export default function CMSClient() {
                           boxShadow: '0 4px 15px rgba(162, 123, 60, 0.2)'
                         }}
                       >
-                        {saving ? 'Saving...' : 'Save Product'}
+                        {saving ? 'Saving...' : isAddingProduct ? 'Create Product' : 'Save Product'}
                       </button>
+
+                      {isAddingProduct && (
+                        <button
+                          onClick={() => {
+                            setIsAddingProduct(false);
+                            setSelectedProductId(products.length > 0 ? products[0].id : null);
+                          }}
+                          disabled={saving}
+                          style={{
+                            width: '100%',
+                            padding: '12px',
+                            background: 'transparent',
+                            border: '1px solid rgba(162, 123, 60, 0.3)',
+                            borderRadius: '6px',
+                            color: 'rgba(46, 37, 30, 0.65)',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            cursor: saving ? 'not-allowed' : 'pointer'
+                          }}
+                          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(162, 123, 60, 0.04)'}
+                          onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
+                          Cancel
+                        </button>
+                      )}
 
                       {!isAddingProduct && selectedProductId && (
                         <button
@@ -1699,6 +1892,8 @@ export default function CMSClient() {
                   </div>
 
                 </div>
+                  </>
+                )}
 
               </div>
 

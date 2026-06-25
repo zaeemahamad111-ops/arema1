@@ -11,58 +11,58 @@ const CATEGORIES = ['All', 'Heritage', 'Farming', 'Quality', 'Trade', 'Process']
 
 const articles = [
   {
-    id: 'matta-rice-world-stage',
+    id: 'authenticity-of-granary',
     category: 'Heritage',
-    readTime: '6 min read',
-    date: 'March 2024',
-    title: 'How Palakkad Matta Rice Found Its Place on the World Stage',
+    readTime: '5 min read',
+    date: 'June 2026',
+    title: 'AREMA : The Authenticity of the Granary',
     excerpt:
-      'For centuries, Matta rice was the staple of Kerala\'s working families. Today, it commands premium positioning in European health food markets and Michelin-starred restaurant menus. The journey of a grain that never needed to change.',
+      'In our childhood, one of the most significant sights and ways of life in our countryside was the vast paddy fields—spread out like a lush green carpet, the true source of rice and grain.',
     image: '/images/blog-images.png',
     featured: true,
   },
   {
-    id: 'palakkad-farmers',
+    id: 'premium-matta-rice-dominating-global-markets',
+    category: 'Trade',
+    readTime: '5 min read',
+    date: 'June 2026',
+    title: 'Taste the Tradition of Kerala with Every Grain : Why Premium Matta Rice is Dominating Global Markets',
+    excerpt:
+      'The global demand for authentic, nutrient-rich ethnic foods is reaching an all-time high. Sourcing authentic regional staples like Kerala Matta rice is the fastest way to build customer loyalty.',
+    image: '/images/tl-05.png',
+    featured: false,
+  },
+  {
+    id: 'why-matta-doesnt-taste-like-90s',
+    category: 'Quality',
+    readTime: '6 min read',
+    date: 'June 2026',
+    title: 'Why doesn’t Matta taste like the 90’s anymore ? and how we brought it back?',
+    excerpt:
+      '“Pazhaya aa taste ippo kittunnilla.” If you’ve heard your parents say this, or caught yourself thinking it after a bland sadhya outside Kerala, you’re not imagining things. The Palakkadan Matta of the 90s has quietly vanished.',
+    image: '/images/matta-grain-hands.png',
+    featured: false,
+  },
+  {
+    id: 'meet-bharathapuzha-farmers',
     category: 'Farming',
     readTime: '5 min read',
-    date: 'November 2023',
-    title: 'The Farmers Behind Every Arema Grain',
+    date: 'June 2026',
+    title: 'Meet the Bharathapuzha Farmers Behind Our Arema Rice',
     excerpt:
-      'We work with a curated network of farmers who share one belief: that how you grow something is as important as what you grow. Meet the families behind the fields.',
+      'Every pack of Arema GI tagged Palakkadan Matta starts with a farmer, not a factory. Across the Bharathapuzha belt, generations of farmers still grow paddy the way GI tag demands.',
     image: '/images/tl-01.png',
     featured: false,
   },
   {
-    id: 'export-standards',
+    id: 'three-myths-about-palakkadan-matta',
     category: 'Quality',
-    readTime: '4 min read',
-    date: 'January 2024',
-    title: 'Why Export Quality Is a Philosophy, Not a Certificate',
-    excerpt:
-      'Certifications matter — but they are the floor, not the ceiling. At Arema, we believe true quality is built in the field, not the laboratory.',
-    image: '/images/tl-02.png',
-    featured: false,
-  },
-  {
-    id: 'global-rice-markets',
-    category: 'Trade',
-    readTime: '7 min read',
-    date: 'September 2023',
-    title: 'Navigating the Global Rice Market in 2024',
-    excerpt:
-      'As global food supply chains continue to evolve, premium origin products are finding new audiences. Here is what the market is telling us.',
-    image: '/images/tl-03.png',
-    featured: false,
-  },
-  {
-    id: 'parboiling-process',
-    category: 'Process',
     readTime: '5 min read',
-    date: 'July 2023',
-    title: 'The Science and Tradition of Parboiling',
+    date: 'June 2026',
+    title: 'Three Myths about Palakkadan Matta that even Malayalis believe',
     excerpt:
-      'Parboiling is one of the oldest forms of rice processing — and one of the most misunderstood. We explain why it matters for nutrition, texture, and shelf life.',
-    image: '/images/tl-04.png',
+      'Not all red rice is Palakkadan Matta — and half of Kerala still gets fooled. We debunk the common myths surrounding this famous grain.',
+    image: '/images/tl-02.png',
     featured: false,
   },
 ];
@@ -104,11 +104,17 @@ export default function BlogPage() {
           image: b.image_url,
           featured: false
         };
+        // Prefer the local article image (guaranteed to exist); fall back to DB url if it looks like a full URL
+        const resolvedImage = base.image && (base.image.startsWith('/images/') || base.image.startsWith('http'))
+          ? base.image
+          : (b.image_url && (b.image_url.startsWith('http') || b.image_url.startsWith('/images/')))
+            ? b.image_url
+            : '/images/blog-images.png';
         return {
           ...base,
           id: b.id,
-          image: b.image_url,
-          featured: b.id === 'matta-rice-world-stage'
+          image: resolvedImage,
+          featured: b.id === 'authenticity-of-granary'
         };
       })
     : articles;

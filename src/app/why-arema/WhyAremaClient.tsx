@@ -78,7 +78,7 @@ export default function WhyAremaPage() {
         <div className={styles.featureInner}>
           <div className={styles.featureImageWrap}>
             <Image 
-              src={getImage('whyarema_split', '/images/tl-04.png')}
+              src={getImage('whyarema_split', '/images/matta-grain-hands.png')}
               alt="Hands holding pure Palakkadan Matta rice" 
               fill 
               sizes="50vw"

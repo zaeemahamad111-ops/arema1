@@ -202,7 +202,7 @@ export const fr: TranslationSchema = {
     "reachTitleEm": "au monde entier.",
     "reachBody": "Nous n'exportons pas seulement du riz ; nous offrons une garantie. Nos expéditions passent les douanes les plus strictes au monde grâce à des dossiers d'exportation irréprochables.",
     "route1Code": "ROUTE / 01",
-    "route1Region": "Émirats Arabes Unis & Qatar",
+    "route1Region": "GCC",
     "route1Ports": "Fourniture aux supermarchés et distributeurs de qualité supérieure du Golfe.",
     "route2Code": "ROUTE / 02",
     "route2Region": "Royaume-Uni & Europe",

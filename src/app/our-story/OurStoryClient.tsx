@@ -21,11 +21,12 @@ export default function OurStoryPage() {
     { code: t('ourStoryPage.route1Code'), region: t('ourStoryPage.route1Region'), ports: t('ourStoryPage.route1Ports'), status: t('ourStoryPage.routeStatus') },
     { code: t('ourStoryPage.route2Code'), region: t('ourStoryPage.route2Region'), ports: t('ourStoryPage.route2Ports'), status: t('ourStoryPage.routeStatus') },
     { code: t('ourStoryPage.route3Code'), region: t('ourStoryPage.route3Region'), ports: t('ourStoryPage.route3Ports'), status: t('ourStoryPage.routeStatus') },
+    { code: t('ourStoryPage.route4Code') || 'ROUTE / 04', region: t('ourStoryPage.route4Region') || 'Australia & Africa', ports: t('ourStoryPage.route4Ports') || '', status: t('ourStoryPage.routeStatus') },
   ];
 
   const imageStrip = [
     { src: '/images/tl-02.png', cap: t('ourStoryPage.stripCap1') },
-    { src: '/images/tl-04.png', cap: t('ourStoryPage.stripCap2') },
+    { src: '/images/matta-grain-hands.png', cap: t('ourStoryPage.stripCap2') },
     { src: '/images/tl-01.png', cap: t('ourStoryPage.stripCap3') },
   ];
 
@@ -145,9 +146,9 @@ export default function OurStoryPage() {
                   {t('ourStoryPage.founderDegree')}
                 </p>
                 <p style={{ margin: 0, fontSize: '0.95rem' }}>
-                  <a href="mailto:nibeesh.jb@gmail.com" style={{ color: 'var(--arema-brown)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <a href={`mailto:${t('contactPage.email')}`} style={{ color: 'var(--arema-brown)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                    nibeesh.jb@gmail.com
+                    {t('contactPage.email')}
                   </a>
                 </p>
               </div>

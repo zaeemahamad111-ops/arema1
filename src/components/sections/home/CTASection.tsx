@@ -90,7 +90,7 @@ export default function CTASection() {
               </span>
             </Link>
 
-            <a href="mailto:nibeesh.jb@gmail.com" className={styles.btnSecondary}>
+            <a href={`mailto:${t('contactPage.email')}`} className={styles.btnSecondary}>
               {t('cta.btnSecondary')}
               <span className={styles.btnArrow}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

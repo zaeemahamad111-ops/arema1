@@ -140,15 +140,25 @@ async function seed() {
   // ── 2. Seed Products ──────────────────────────────────────────────────────
   console.log("Seeding products...");
   const products = [
-    { id: 'jyothi-matta', image_url: '/images/product-bag-nobg.png' },
-    { id: 'uma-matta', image_url: '/images/product-bag-nobg.png' },
-    { id: 'kanjana-matta', image_url: '/images/product-bag-nobg.png' },
-    { id: 'chitteni-matta', image_url: '/images/product-bag-nobg.png' },
-    { id: 'ast-white-rice', image_url: '/images/product-bag-nobg.png' },
-    { id: 'puttu-podi', image_url: '/images/product-bag-nobg.png' },
-    { id: 'idiyappam-podi', image_url: '/images/product-bag-nobg.png' },
-    { id: 'pathiri-podi', image_url: '/images/product-bag-nobg.png' },
-    { id: 'kondattam', image_url: '/images/product-bag-nobg.png' }
+    { id: 'matta-rice', image_url: '/images/product-bag-nobg.png', order_index: 0 },
+    { id: 'kuruva-rice', image_url: '/images/product-bag-nobg.png', order_index: 1 },
+    { id: 'aromatic-rice', image_url: '/images/product-bag-nobg.png', order_index: 2 },
+    { id: 'biryani-rice', image_url: '/images/product-bag-nobg.png', order_index: 3 },
+    { id: 'navara-rice', image_url: '/images/product-bag-nobg.png', order_index: 4 },
+    { id: 'gandhakasala-rice', image_url: '/images/product-bag-nobg.png', order_index: 5 },
+    { id: 'jyothi-matta', image_url: '/images/product-bag-nobg.png', order_index: 6 },
+    { id: 'uma-matta', image_url: '/images/product-bag-nobg.png', order_index: 7 },
+    { id: 'kanjana-matta', image_url: '/images/product-bag-nobg.png', order_index: 8 },
+    { id: 'chitteni-matta', image_url: '/images/product-bag-nobg.png', order_index: 9 },
+    { id: 'ast-white-rice', image_url: '/images/white-rice.jpeg', order_index: 10 },
+    { id: 'puttu-podi', image_url: '/images/product-bag-nobg.png', order_index: 11 },
+    { id: 'idiyappam-podi', image_url: '/images/product-bag-nobg.png', order_index: 12 },
+    { id: 'pathiri-podi', image_url: '/images/product-bag-nobg.png', order_index: 13 },
+    { id: 'kondattam', image_url: '/images/product-bag-nobg.png', order_index: 14 },
+    { id: 'ari-kondattam', image_url: '/images/product-bag-nobg.png', order_index: 15 },
+    { id: 'mulaku-kondattam', image_url: '/images/product-bag-nobg.png', order_index: 16 },
+    { id: 'pavakka-kondattam', image_url: '/images/product-bag-nobg.png', order_index: 17 },
+    { id: 'payar-kondattam', image_url: '/images/product-bag-nobg.png', order_index: 18 },
   ];
   
   // Upsert base products

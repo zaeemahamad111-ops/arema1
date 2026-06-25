@@ -277,8 +277,8 @@ export default function ProductDetailClient({ product, otherProducts }: ProductD
                 <Link href="/contact" className="btn btn--primary">
                   {t('productDetail.btnEnquiry')}
                 </Link>
-                <a href="mailto:nibeesh.jb@gmail.com" className={styles.mailLink}>
-                  nibeesh.jb@gmail.com
+                <a href={`mailto:${t('contactPage.email')}`} className={styles.mailLink}>
+                  {t('contactPage.email')}
                 </a>
               </div>
             </div>

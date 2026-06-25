@@ -119,7 +119,7 @@ const PRODUCTS_DATA: Record<string, Product> = {
       { label: 'Cooking Time', value: '15 - 20 minutes' },
       { label: 'Packaging available', value: '1kg, 5kg' }
     ],
-    image: '/images/product-bag-nobg.png',
+    image: '/images/white-rice.jpeg',
     gradient: 'linear-gradient(135deg, #ECEAE6 0%, #CDD2D5 100%)',
   },
   'puttu-podi': {
@@ -204,10 +204,96 @@ const PRODUCTS_DATA: Record<string, Product> = {
     image: '/images/product-bag-nobg.png',
     gradient: 'linear-gradient(135deg, #ECEAE6 0%, #C4CDD1 100%)',
   },
+  'ari-kondattam': {
+    id: 'ari-kondattam',
+    name: 'Ari Kondattam (Rice Wafers)',
+    category: 'Kondattams',
+    tagline: 'Crispy sun-dried rice wafers — the perfect traditional side for Kanji.',
+    description: 'Ari Kondattam is a traditional Kerala sun-dried rice preserve made from select rice varieties. Crafted using ancient preservation methods with zero chemicals, these crispy wafers deliver authentic taste and crunch when fried.',
+    highlights: [
+      'Made from select Kerala rice varieties',
+      'Sun-dried with zero chemicals or additives',
+      'Extremely crisp and flavorful when fried',
+      'Perfect with Kanji or as a side dish'
+    ],
+    specs: [
+      { label: 'Product Type', value: 'Sun-dried rice wafers (Ari Kondattam)' },
+      { label: 'Preservation', value: '100% Natural Sun-dried' },
+      { label: 'Additives', value: 'None' }
+    ],
+    image: '/images/product-bag-nobg.png',
+    gradient: 'linear-gradient(135deg, #ECEAE6 0%, #C4CDD1 100%)',
+  },
+  'mulaku-kondattam': {
+    id: 'mulaku-kondattam',
+    name: 'Mulaku Kondattam (Chilli Wafers)',
+    category: 'Kondattams',
+    tagline: 'Spicy sun-dried chilli wafers with bold Kerala heat.',
+    description: 'Mulaku Kondattam captures the bold, fiery character of Kerala green chillies in sun-dried wafer form. Prepared using traditional methods with no preservatives, these wafers fry up crispy and deliver an authentic spicy kick.',
+    highlights: [
+      'Bold, authentic Kerala chilli flavour',
+      'Sun-dried naturally — zero preservatives',
+      'Crispy and fiery when fried',
+      'Traditional recipe, unchanged for generations'
+    ],
+    specs: [
+      { label: 'Product Type', value: 'Sun-dried chilli wafers (Mulaku Kondattam)' },
+      { label: 'Preservation', value: '100% Natural Sun-dried' },
+      { label: 'Additives', value: 'None' }
+    ],
+    image: '/images/product-bag-nobg.png',
+    gradient: 'linear-gradient(135deg, #ECEAE6 0%, #C4CDD1 100%)',
+  },
+  'pavakka-kondattam': {
+    id: 'pavakka-kondattam',
+    name: 'Pavakka Kondattam (Bitter Gourd Wafers)',
+    category: 'Kondattams',
+    tagline: 'Sun-dried bitter gourd wafers — a nutritious traditional Kerala side.',
+    description: 'Pavakka Kondattam is a nutritious sun-dried bitter gourd preserve made using traditional Kerala methods. Free from artificial additives and fries up beautifully crisp — a beloved accompaniment to everyday Kerala meals.',
+    highlights: [
+      'Rich in nutrients from bitter gourd',
+      'Traditional preservation — zero chemicals',
+      'Crispy, flavourful when fried',
+      'A healthy, authentic Kerala side dish'
+    ],
+    specs: [
+      { label: 'Product Type', value: 'Sun-dried bitter gourd wafers (Pavakka Kondattam)' },
+      { label: 'Preservation', value: '100% Natural Sun-dried' },
+      { label: 'Additives', value: 'None' }
+    ],
+    image: '/images/product-bag-nobg.png',
+    gradient: 'linear-gradient(135deg, #ECEAE6 0%, #C4CDD1 100%)',
+  },
+  'payar-kondattam': {
+    id: 'payar-kondattam',
+    name: 'Payar Kondattam (Yard Bean Wafers)',
+    category: 'Kondattams',
+    tagline: 'Sun-dried yard bean wafers — protein-rich and traditionally made.',
+    description: 'Payar Kondattam is a sun-dried yard bean preserve made using authentic Kerala methods. High in protein and fibre, free from artificial additives. When fried, they turn delightfully crispy and nutty.',
+    highlights: [
+      'High in protein and fibre from yard beans',
+      'Sun-dried naturally — no preservatives',
+      'Crispy and nutty when fried',
+      'Authentic traditional Kerala preserve'
+    ],
+    specs: [
+      { label: 'Product Type', value: 'Sun-dried yard bean wafers (Payar Kondattam)' },
+      { label: 'Preservation', value: '100% Natural Sun-dried' },
+      { label: 'Additives', value: 'None' }
+    ],
+    image: '/images/product-bag-nobg.png',
+    gradient: 'linear-gradient(135deg, #ECEAE6 0%, #C4CDD1 100%)',
+  },
 };
 
 export async function generateStaticParams() {
   return [
+    { id: 'matta-rice' },
+    { id: 'kuruva-rice' },
+    { id: 'aromatic-rice' },
+    { id: 'biryani-rice' },
+    { id: 'navara-rice' },
+    { id: 'gandhakasala-rice' },
     { id: 'jyothi-matta' },
     { id: 'uma-matta' },
     { id: 'kanjana-matta' },
@@ -217,6 +303,10 @@ export async function generateStaticParams() {
     { id: 'idiyappam-podi' },
     { id: 'pathiri-podi' },
     { id: 'kondattam' },
+    { id: 'ari-kondattam' },
+    { id: 'mulaku-kondattam' },
+    { id: 'pavakka-kondattam' },
+    { id: 'payar-kondattam' },
   ];
 }
 

@@ -202,7 +202,7 @@ export const nl: TranslationSchema = {
     "reachTitleEm": "naar de wereld.",
     "reachBody": "Wij exporteren niet alleen rijst; wij exporteren een garantie. Onze zendingen passeren de strengste douanecontroles ter wereld dankzij sluitende documentatie.",
     "route1Code": "ROUTE / 01",
-    "route1Region": "Verenigde Arabische Emiraten & Qatar",
+    "route1Region": "GCC",
     "route1Ports": "Levering aan supermarkten en premium distributeurs in de Golfregio.",
     "route2Code": "ROUTE / 02",
     "route2Region": "Verenigd Koninkrijk & Europa",

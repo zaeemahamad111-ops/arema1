@@ -13,6 +13,7 @@ create table if not exists site_translations (
 create table if not exists products (
   id text primary key,
   image_url text not null,
+  order_index integer default 0,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

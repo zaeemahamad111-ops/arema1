@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-image: url('/images/what-we-do-web.png');
+  background-image: url('/images/home-web.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -154,7 +154,7 @@
 /* ── RESPONSIVE ────────────────────────────────────── */
 @media (max-width: 1024px) {
   .section {
-    background-image: url('/images/what-we-do-mobile.png');
+    background-image: url('/images/home-mobile.png');
     background-position: center;
     padding-block: var(--space-8);
     min-height: auto;
